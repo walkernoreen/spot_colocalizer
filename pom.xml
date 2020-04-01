@@ -116,10 +116,16 @@
             <groupId>sc.fiji</groupId>
             <artifactId>TrackMate_</artifactId>
         </dependency>
-<!--        <dependency>
-            <groupId>net.imagej</groupId>
-            <artifactId>ij</artifactId>
-        </dependency> -->
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>16.0.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <!--        <dependency>
+                    <groupId>net.imagej</groupId>
+                    <artifactId>ij</artifactId>
+                </dependency> -->
 
         <!-- morpholibj -->
 <!--        <dependency>
