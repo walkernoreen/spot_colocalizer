@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+		http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.scijava</groupId>
+		<artifactId>pom-scijava</artifactId>
+		<version>24.2.0</version>
+		<relativePath />
+	</parent>
+
+	<groupId>de.mpicbg.scf</groupId>
+	<artifactId>SpotColocalizer</artifactId>
+	<version>1.0.0</version>
+
+	<name>SpotColocalizer</name>
+	<description>Detects spots in 2 channel and measures spot colocalization based on spot center distances (2D and 3D).</description>
+	<url>TODO</url>
+	<inceptionYear>2020</inceptionYear>
+	<organization>
+		<name>MPI CBG</name>
+		<url>https://www.mpi-cbg.de/services-facilities/core-facilities/scientific-computing-facility/service-portfolio-overview/</url>
+	</organization>
+    <licenses>
+        <license>
+            <name>BSD License Version 3</name>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+
+	<developers>
+		<developer>
+			<id>walkernoreen</id>
+			<name>Noreen Walker</name>
+			<url>none</url> <!--not yet ...-->
+			<roles>
+				<role>developer</role>
+				<role>debugger</role>
+				<role>reviewer</role>
+				<role>support</role>
+				<role>maintainer</role>
+			</roles>
+		</developer>
+	</developers>
+	<contributors> 
+		<contributor>
+			<name>none</name>
+		</contributor>
+	</contributors>
+
+	<mailingLists>
+		<mailingList>
+			<name>Image.sc Forum</name>
+			<archive>https://forum.image.sc/</archive>
+		</mailingList>
+	</mailingLists>
+
+	<scm>
+		<url>none</url>
+	</scm>
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>TODO</url>
+	</issueManagement>
+	<ciManagement>
+		<system>none</system>
+	</ciManagement>
+
+	<properties> <!--TODO this whole section-->
+		<package-name>de.mpicbg.scf.spotcoloc</package-name>
+		<main-class>de.mpicbg.scf.spotcoloc.SpotColocalizerPlugin</main-class>
+		<license.licenseName>bsd_3</license.licenseName>
+		<license.copyrightOwners>MPI CBG SCF</license.copyrightOwners>
+		<imagej.app.directory>/Users/walker/Desktop/Fiji_dev.app</imagej.app.directory>
+        <imagej.app.subdirectory>plugins</imagej.app.subdirectory>
+	</properties>
+
+    <repositories>
+        <repository>
+            <id>imagej.public</id>
+            <url>http://maven.imagej.net/content/groups/public</url>
+        </repository>
+    </repositories>
+
+    <!-- don't package resources files into jar -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.3.1</version>
+                <configuration>
+                    <excludes>
+                        <exclude>*.tif</exclude>
+                        <exclude>*.zip</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+	<dependencies>
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>imagej</artifactId>
+		</dependency>
+        <dependency>
+            <groupId>net.imagej</groupId>
+            <artifactId>imagej-legacy</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sc.fiji</groupId>
+            <artifactId>TrackMate_</artifactId>
+        </dependency>
+<!--        <dependency>
+            <groupId>net.imagej</groupId>
+            <artifactId>ij</artifactId>
+        </dependency> -->
+
+        <!-- morpholibj -->
+<!--        <dependency>
+            <groupId>fr.inra.ijpb</groupId>
+            <artifactId>MorphoLibJ_</artifactId>
+            <version>1.4.0</version>
+        </dependency>-->
+
+	</dependencies>
+</project>

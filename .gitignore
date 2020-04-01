@@ -1,0 +1,7 @@
+target
+explore
+.DS_Store
+*iml
+.idea
+src/main/resources/*tif
+raw_images_for_docs_gitignore
