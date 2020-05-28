@@ -6,21 +6,18 @@ convert imp to imglib2 type: https://forum.image.sc/t/how-to-wrap-any-kind-of-im
 
 package de.mpicbg.scf.spotcoloc;
 
+import fiji.plugin.trackmate.Spot;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.gui.Overlay;
 import ij.gui.PolygonRoi;
 import ij.gui.Roi;
 import net.imagej.ImageJ;
-import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.img.Img;
-import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.view.IntervalView;
-import net.imglib2.view.Views;
 
+import java.awt.*;
 import java.io.File;
-import java.util.Arrays;
+import java.util.List;
 
 public class Main {
    public static  <T extends RealType<T>> void main(final String... args) throws Exception { //TODO extend T?
@@ -50,13 +47,23 @@ public class Main {
 
        //
 //       Snippets.extractChannelOrRegion(imp);
-       new SpotHandler().detectSpots(imp, 3, 0.4, 250, true,false );
+       SpotColocalizer<T> spotColocalizer = new SpotColocalizer<T>(imp);
 
+       spotColocalizer.runFullColocalizationAnalysis(2,0.4,200,3,0.4,
+               250,1,true,false,true);
 
+/*       List<Spot> spotsA = spotColocalizer.detectSpots(2, 0.4, 200, true, false);
+       List<Spot> spotsB = spotColocalizer.detectSpots(3, 0.4, 250, true, false);
 
+       SpotColocalizer.SpotsTriplet ST = spotColocalizer.findSpotCorrespondences(spotsA, spotsB, 0.4);
 
+       Overlay ov = spotColocalizer.createOverlayOfSpots(ST.spotsA_noncoloc, imp, Color.red);
+       ov=spotColocalizer.createOverlayOfSpots(ST.spots_coloc,imp,ov,Color.yellow);
+       ov=spotColocalizer.createOverlayOfSpots(ST.spotsB_noncoloc,imp,ov,Color.green);
 
+       imp.setOverlay(ov);
 
+*/
 
 
        // invoke the plugin (IJ2 style)
