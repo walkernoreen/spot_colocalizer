@@ -37,37 +37,15 @@ public class Main {
 //        File inputFile=new File("src/main/resources/spots_singlechannel_stack.tif");
         File inputFile=new File("src/main/resources/spots_multichannel_stack.tif");
 
-        ImagePlus imp= IJ.openImage(inputFile.getPath());
+      ImagePlus imp= IJ.openImage(inputFile.getPath());
 
        int[] xpoints = {65,185,175};
        int[] ypoints = {124,22,202};
        imp.setRoi(new PolygonRoi(xpoints,ypoints,3,Roi.POLYGON));
-       // imp.setRoi(new Roi(100,50,50,80));
         imp.show();
 
-       //
-//       Snippets.extractChannelOrRegion(imp);
-       SpotColocalizer<T> spotColocalizer = new SpotColocalizer<T>(imp);
-
-       spotColocalizer.runFullColocalizationAnalysis(2,0.4,200,3,0.4,
-               250,1,true,false,true);
-
-/*       List<Spot> spotsA = spotColocalizer.detectSpots(2, 0.4, 200, true, false);
-       List<Spot> spotsB = spotColocalizer.detectSpots(3, 0.4, 250, true, false);
-
-       SpotColocalizer.SpotsTriplet ST = spotColocalizer.findSpotCorrespondences(spotsA, spotsB, 0.4);
-
-       Overlay ov = spotColocalizer.createOverlayOfSpots(ST.spotsA_noncoloc, imp, Color.red);
-       ov=spotColocalizer.createOverlayOfSpots(ST.spots_coloc,imp,ov,Color.yellow);
-       ov=spotColocalizer.createOverlayOfSpots(ST.spotsB_noncoloc,imp,ov,Color.green);
-
-       imp.setOverlay(ov);
-
-*/
-
-
        // invoke the plugin (IJ2 style)
-      //  ij.command().run(SpotColocalizerPlugin.class, true);
+        ij.command().run(SpotColocalizerPlugin.class, true);
 
         // automatize input for all @Parameters
       /*  Map<String, Object> map = new HashMap<>();

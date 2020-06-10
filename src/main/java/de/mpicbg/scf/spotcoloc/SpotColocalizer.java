@@ -24,7 +24,7 @@ import java.util.List;
 import static java.lang.Math.round;
 import static java.lang.Math.sqrt;
 
-public class SpotColocalizer<T extends RealType<T>>{
+public class SpotColocalizer{
     // TODO: or name it SpotProcessor? Make all the channel names + thresholds field variables?
 
     // 2D or 3D, single time point. for colocalization: at least 2 channels
@@ -61,8 +61,8 @@ public class SpotColocalizer<T extends RealType<T>>{
      * @param doSubpixel for LoG Detector
      * @param doMedian for LogDetector
      */
-    public List<Spot> detectSpots(int channelnr, double radius_um, double threshold, boolean doSubpixel,
-                            boolean doMedian) {
+    public <T extends RealType<T>> List<Spot> detectSpots(int channelnr, double radius_um, double threshold,
+                                                          boolean doSubpixel, boolean doMedian) {
         // initialize result
         List<Spot> spots = new ArrayList<>();
 
@@ -141,7 +141,7 @@ public class SpotColocalizer<T extends RealType<T>>{
 
         if (previewChA) {
             List<Spot> spotsA = detectSpots(channelA, radiusA_um, thresholdA, doSubPixel, doMedian);
-            ov = createOverlayOfSpots(spotsA, ov, Color.red);
+            ov = createOverlayOfSpots(spotsA, ov, Color.magenta);
         }
 
         if (previewChB) {
@@ -166,9 +166,9 @@ public class SpotColocalizer<T extends RealType<T>>{
      * @param spotsA from detectSpots(...)
      * @param spotsB from detectSpots(...), different channel
      * @param maxdist_um Maximum distance (in um) between spot centers to still be considered colocalized. Typically 1.0*spotradius
-     * @return SpotsTriplet with list of non-colocalized and colocalized spots
+     * @return ColocResult with list of non-colocalized and colocalized spots
      */
-    public SpotsTriplet findSpotCorrespondences(List<Spot> spotsA, List<Spot> spotsB, double maxdist_um) {
+    public ColocResult findSpotCorrespondences(List<Spot> spotsA, List<Spot> spotsB, double maxdist_um) {
         //TODO some LOGwindow output
 
         // work with squared distances
@@ -278,7 +278,7 @@ public class SpotColocalizer<T extends RealType<T>>{
 
         IJ.log("\nFinished computing colocalization between spots.\n");
 
-        return new SpotsTriplet(spotsA_noncoloc, spotsB_noncoloc, spots_coloc);
+        return new ColocResult(spotsA_noncoloc, spotsB_noncoloc, spots_coloc);
     }
 
 
@@ -306,12 +306,12 @@ public class SpotColocalizer<T extends RealType<T>>{
 
         // detect which spots are colocalized
         double maxdist_um = 0.5 * (radiusA_um + radiusB_um) * distanceFactorColoc;
-        SpotColocalizer.SpotsTriplet ST = findSpotCorrespondences(spotsA, spotsB, maxdist_um);
+        ColocResult CR = findSpotCorrespondences(spotsA, spotsB, maxdist_um);
 
         // create visualization overlay
-        Overlay ov = createOverlayOfSpots(ST.spotsA_noncoloc, Color.red);
-        ov=createOverlayOfSpots(ST.spots_coloc, ov,Color.yellow);
-        ov=createOverlayOfSpots(ST.spotsB_noncoloc, ov,Color.green);
+        Overlay ov = createOverlayOfSpots(CR.spotsA_noncoloc, Color.red);
+        ov=createOverlayOfSpots(CR.spots_coloc, ov,Color.yellow);
+        ov=createOverlayOfSpots(CR.spotsB_noncoloc, ov,Color.green);
 
         // add roi to overlay
         Roi roi = imp.getRoi();
@@ -323,8 +323,8 @@ public class SpotColocalizer<T extends RealType<T>>{
         imp.setOverlay(ov);
 
         //display counts in results table
-        ResultsTable rt = fillResultsTable(channelA, channelB, spotsA, spotsB, ST.spotsA_noncoloc,
-                ST.spotsB_noncoloc, ST.spots_coloc, clearTable);
+        ResultsTable rt = fillResultsTable(channelA, channelB, spotsA, spotsB, CR.spotsA_noncoloc,
+                CR.spotsB_noncoloc, CR.spots_coloc, clearTable);
         rt.show(titleResultsTable);
 
     }
@@ -395,12 +395,12 @@ public class SpotColocalizer<T extends RealType<T>>{
     /**
      * Little helper class to move the lists of noncolocalized & colocalized spots around
      */
-    public static class SpotsTriplet {
+    public static class ColocResult {
         List<Spot> spotsA_noncoloc;
         List<Spot> spotsB_noncoloc;
         List<Spot> spots_coloc;
 
-        SpotsTriplet(List<Spot> spotsA_non, List<Spot> spotsB_non, List<Spot> spots_col) {
+        ColocResult(List<Spot> spotsA_non, List<Spot> spotsB_non, List<Spot> spots_col) {
             spotsA_noncoloc=spotsA_non;
             spotsB_noncoloc=spotsB_non;
             spots_coloc=spots_col;
