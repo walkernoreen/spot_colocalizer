@@ -75,8 +75,8 @@
 		<main-class>de.mpicbg.scf.spotcoloc.SpotColocalizerPlugin</main-class>
 		<license.licenseName>bsd_3</license.licenseName>
 		<license.copyrightOwners>MPI CBG SCF</license.copyrightOwners>
-		<imagej.app.directory>/Users/walker/Desktop/Fiji_dev.app</imagej.app.directory>
-        <imagej.app.subdirectory>plugins</imagej.app.subdirectory>
+		<scijava.app.directory>/Users/walker/software/Fiji_dev.app</scijava.app.directory>
+        <scijava.app.subdirectory>plugins</scijava.app.subdirectory>
 	</properties>
 
     <repositories>

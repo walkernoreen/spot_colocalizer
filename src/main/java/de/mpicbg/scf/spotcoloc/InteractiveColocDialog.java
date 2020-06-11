@@ -10,8 +10,6 @@ import java.awt.*;
 
 public class InteractiveColocDialog implements DialogListener {
 
-    // TODO: make gd dialog a member? and what about imp?
-
     // parameters
     // channel A
     private int channelA=1;

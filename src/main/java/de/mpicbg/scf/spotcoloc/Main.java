@@ -42,7 +42,9 @@ public class Main {
        int[] xpoints = {65,185,175};
        int[] ypoints = {124,22,202};
        imp.setRoi(new PolygonRoi(xpoints,ypoints,3,Roi.POLYGON));
-        imp.show();
+       int nSlices = imp.getNSlices();
+       imp.setPosition(1, (int) Math.max(1,0.5*nSlices),1);
+       imp.show();
 
        // invoke the plugin (IJ2 style)
         ij.command().run(SpotColocalizerPlugin.class, true);
