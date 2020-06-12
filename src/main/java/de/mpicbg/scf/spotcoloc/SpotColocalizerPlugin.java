@@ -18,7 +18,7 @@ import java.awt.event.MouseListener;
  * Date: 2020-06
  */
 // ToDo s: also table with spots positions?
-// add help button?
+// ToDo add help button?
 
 @Plugin(type = Command.class, menuPath = "Plugins>Spot Colocalization > SpotColoc") // TODO nicer path
 public class SpotColocalizerPlugin implements Command, MouseListener {

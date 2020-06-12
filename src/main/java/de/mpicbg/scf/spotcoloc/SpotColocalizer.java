@@ -1,5 +1,3 @@
-// TODO: avoid multiple time points? -> catch it?
-// make functions static?
 
 package de.mpicbg.scf.spotcoloc;
 
@@ -173,8 +171,6 @@ public class SpotColocalizer{
      * @return ColocResult with list of non-colocalized and colocalized spots
      */
     public ColocResult findSpotCorrespondences(List<Spot> spotsA, List<Spot> spotsB, double maxdist_um) {
-        //TODO some LOGwindow output
-
         // work with squared distances
         double maxdist2 = maxdist_um * maxdist_um;
 
