@@ -90,30 +90,34 @@ public class SpotColocalizer{
         // == Detect the spots ==
         LogDetector detector = new LogDetector(img, interval, calibration, radius_um, threshold, doSubpixel, doMedian);
 
-        if (detector.process()) {
-            // Get the list of detected spots
-            List<Spot> spotsraw = detector.getResult();
-            IJ.log("\nSpot detection in Channel " + channelnr + " finished.");
-            IJ.log("Found " + spotsraw.size() + " spots (in bounding box around roi, or full image if no roi");
+        try {
+            if (detector.process()) {
+                // Get the list of detected spots
+                List<Spot> spotsraw = detector.getResult();
+                IJ.log("\nSpot detection in Channel " + channelnr + " finished.");
+                IJ.log("Found " + spotsraw.size() + " spots (in bounding box around roi, or full image if no roi)");
 
-            // Filter spots by ROI
-            Roi roi = imp.getRoi();
-            if (roi == null) {
-                spots = spotsraw;
-            } else {
-                // check if spot pixel position within roi
-                double[] position;
-                for (Spot currentspot : spotsraw) {
-                    position = getPositionPx(currentspot, calib);
-                    if (roi.contains((int) position[0], (int) position[1])) {
-                        spots.add(currentspot);
+                // Filter spots by ROI
+                Roi roi = imp.getRoi();
+                if (roi == null) {
+                    spots = spotsraw;
+                } else {
+                    // check if spot pixel position within roi
+                    double[] position;
+                    for (Spot currentspot : spotsraw) {
+                        position = getPositionPx(currentspot, calib);
+                        if (roi.contains((int) position[0], (int) position[1])) {
+                            spots.add(currentspot);
+                        }
                     }
+                    IJ.log("Filter spots by roi region: kept " + spots.size() + " spots.");
                 }
-                IJ.log("Filter spots by roi region: kept " + spots.size() + " spots.");
+            } else {
+                IJ.log("The detector could not process the data.");
             }
         }
-        else {
-            IJ.log("The detector could not process the data.");
+        catch (ArrayIndexOutOfBoundsException e) {
+            IJ.log("The detector could not process the data: Roi outside of image");
         }
 
         return spots;
