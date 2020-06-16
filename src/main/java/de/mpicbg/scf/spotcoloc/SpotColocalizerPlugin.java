@@ -188,8 +188,10 @@ public class SpotColocalizerPlugin implements Command, MouseListener {
             previewA=gd.getNextBoolean();
             previewB=gd.getNextBoolean();
 
-            // show spot detection previews
+
             printParameters();
+
+            // show spot detection previews
             if (checkParameters()) {
                 System.out.println("preview call triggered");
                 spotColocalizer.generateDetectionPreviewMultiChannel(previewA, previewB, channelA, radiusA_um,
@@ -247,7 +249,7 @@ public class SpotColocalizerPlugin implements Command, MouseListener {
      * Loads stored parameter values from disk (from preferences file).
      * If parameter is not found, uses default values.
      */
-    private void loadStoredParameters() {
+    private void loadStoredParameters() { // TODO somewhere the parameters are not stored or read correctly (same for A&B)
         channelA = prefs.getInt(this.getClass(), "channelA", channelA);
         radiusA_um = prefs.getDouble(this.getClass(),"radiusA_um",radiusA_um);
         thresholdA=prefs.getDouble(this.getClass(),"thresholdA",thresholdA);

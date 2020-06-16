@@ -23,10 +23,11 @@ import static java.lang.Math.round;
 import static java.lang.Math.sqrt;
 
 public class SpotColocalizer{
+    // TODO show IJ.showStatus when it si computing the rpeview
     // TODO: or name it SpotProcessor? Make all the channel names + thresholds field variables?
 
     // 2D or 3D, single time point. for colocalization: at least 2 channels
-    private ImagePlus imp;
+    private ImagePlus imp; // TODO make final?
 
     final String titleResultsTable="ResultsSpotColocalization";
 
