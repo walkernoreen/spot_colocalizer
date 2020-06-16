@@ -9,6 +9,8 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
@@ -113,6 +115,18 @@ public class SpotColocalizerPlugin implements Command, MouseListener {
             gd.addNumericField("Coloc distance factor (default: 1)",distanceFactorColoc,1); // factor of average radius.
             gd.addCheckbox("preview spots in channel A",false);
             gd.addCheckbox("preview spots in channel B",false);
+            // preview button
+            // combined from https://forum.image.sc/t/genericdialog-window-prevent-interaction-with-other-windows/12067/4
+            // and https://github.com/imagej/ImageJA/blob/230e425c01d6e17f88cb770113c2f5119330141f/src/main/java/ij/gui/GenericDialog.java#L813
+            Button previewButton= new Button("Generate Preview");
+            GridBagConstraints constraints = new GridBagConstraints();
+            constraints.gridy=GridBagConstraints.RELATIVE;
+            constraints.gridx=0;
+            constraints.insets = new Insets(10,20,0,0);
+            gd.add(previewButton,constraints);
+            gd.addMessage(""); // dummy spacer since our gd doesn't know about the button location
+
+
         }
 
 
