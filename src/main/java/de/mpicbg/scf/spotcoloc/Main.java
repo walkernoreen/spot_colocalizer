@@ -6,18 +6,14 @@ convert imp to imglib2 type: https://forum.image.sc/t/how-to-wrap-any-kind-of-im
 
 package de.mpicbg.scf.spotcoloc;
 
-import fiji.plugin.trackmate.Spot;
 import ij.IJ;
 import ij.ImagePlus;
-import ij.gui.Overlay;
 import ij.gui.PolygonRoi;
 import ij.gui.Roi;
 import net.imagej.ImageJ;
 import net.imglib2.type.numeric.RealType;
 
-import java.awt.*;
 import java.io.File;
-import java.util.List;
 
 public class Main {
    public static  <T extends RealType<T>> void main(final String... args) throws Exception {
@@ -47,7 +43,7 @@ public class Main {
        imp.show();
 
        // invoke the plugin (IJ2 style)
-        ij.command().run(SpotColocalizerPlugin.class, true);
+        ij.command().run(SpotColocalizerInteractivePlugin.class, true);
 
         // automatize input for all @Parameters
       /*  Map<String, Object> map = new HashMap<>();

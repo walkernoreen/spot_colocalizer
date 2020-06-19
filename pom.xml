@@ -72,7 +72,7 @@
 
 	<properties> <!--TODO this whole section-->
 		<package-name>de.mpicbg.scf.spotcoloc</package-name>
-		<main-class>de.mpicbg.scf.spotcoloc.SpotColocalizerPlugin</main-class>
+		<main-class>de.mpicbg.scf.spotcoloc.SpotColocalizerInteractivePlugin</main-class>
 		<license.licenseName>bsd_3</license.licenseName>
 		<license.copyrightOwners>MPI CBG SCF</license.copyrightOwners>
 		<scijava.app.directory>/Users/walker/software/Fiji_dev.app</scijava.app.directory>

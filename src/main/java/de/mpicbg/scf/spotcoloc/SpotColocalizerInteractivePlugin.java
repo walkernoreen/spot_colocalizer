@@ -19,11 +19,11 @@ import org.scijava.widget.Button;
  */
 // ToDo add help button?
 
+/**
+ * Interactive spot detection + colocalization analysis. For macro recording use SpotColocalizerBatchPlugin.
+ */
 @Plugin(type = InteractiveCommand.class, initializer = "initialize_spotcoloc", menuPath = "Plugins>Spot Colocalization > SpotColoc") // TODO nicer path
-public class SpotColocalizerPlugin extends InteractiveCommand  { //implements MouseListener {
-
-    @Parameter
-    private PrefService prefs;
+public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
 
     @Parameter
     ImagePlus imp;
@@ -175,8 +175,6 @@ public class SpotColocalizerPlugin extends InteractiveCommand  { //implements Mo
 
     /**
      * Checks that inputs are not NaN and that neither channel nor radius is zero.
-     * Both can happen while typing, since DialogListener listens to every single character input
-     * (e.g deleting or setting radius 0 -> 0. -> 0.4)
      * @return whether checks were passed
      */
     private final boolean checkParameters() {
