@@ -17,7 +17,6 @@ import org.scijava.widget.Button;
  * Author: Noreen Walker, Scientific Computing Facility, MPI-CBG
  * Date: 2020-06
  */
-// ToDo s: also table with spots positions?
 // ToDo add help button?
 
 @Plugin(type = InteractiveCommand.class, initializer = "initialize_spotcoloc", menuPath = "Plugins>Spot Colocalization > SpotColoc") // TODO nicer path
@@ -29,7 +28,7 @@ public class SpotColocalizerPlugin extends InteractiveCommand  { //implements Mo
     @Parameter
     ImagePlus imp;
 
-    // -- Dialog Parameters -- // ToDo: rearrange the GUI + update the print fcts with all params
+    // -- Dialog Parameters --
     // channel A
     @Parameter(label = "---  Channel A" , visibility = ItemVisibility.MESSAGE, persist = false, required=false)
     private String m1 = " (spots displayed magenta) ---";
@@ -74,10 +73,10 @@ public class SpotColocalizerPlugin extends InteractiveCommand  { //implements Mo
     private boolean clearTable=false;
 
     @Parameter(label="Include spots A in preview", persist = false)
-    private boolean previewA=false;
+    private boolean previewA=true;
 
     @Parameter(label="Include spots B in preview", persist = false)
-    private boolean previewB=false;
+    private boolean previewB=true;
 
     // processing buttons
     @Parameter(label = "Generate Preview", callback="generatePreview_callback" )
@@ -193,21 +192,22 @@ public class SpotColocalizerPlugin extends InteractiveCommand  { //implements Mo
      * Pretty printing of all parameters to the console.
      */
     public final void printParameters() {
-        System.out.print("\nChannel A: ");
-        System.out.println("channelA="+channelA+", radiusA_um="+radiusA_um+", thresholdA="+thresholdA);
-        System.out.print("Channel B: ");
-        System.out.println("channelB="+channelB+", radiusB_um="+radiusB_um+", thresholdB="+thresholdB);
-        System.out.print("General: ");
-        System.out.println("distanceFactorColoc="+distanceFactorColoc+", previewA="+previewA+", previewB="+previewB+"\n");
+        System.out.println("\nParameters:");
+        System.out.println("Channel A: channelA=" + channelA + ", radiusA_um=" + radiusA_um + ", thresholdA=" + thresholdA);
+        System.out.println("Channel B: channelB=" + channelB + ", radiusB_um=" + radiusB_um + ", thresholdB=" + thresholdB);
+        System.out.println("Both channels: medianFilter=" + doMedian + ", distanceFactorColoc=" + distanceFactorColoc);
+        System.out.println("General: clearTable=" + clearTable + ", previewA=" + previewA + ", previewB=" + previewB + "\n");
     }
 
     /**
      * Pretty printing of all parameters to the Log.
      */
     public final void printParametersToLog() {
-        IJ.log("\nChannel A: channelA="+channelA+", radiusA_um="+radiusA_um+", thresholdA="+thresholdA);
+        IJ.log("\nParameters:");
+        IJ.log("Channel A: channelA="+channelA+", radiusA_um="+radiusA_um+", thresholdA="+thresholdA);
         IJ.log("Channel B: channelB="+channelB+", radiusB_um="+radiusB_um+", thresholdB="+thresholdB);
-        IJ.log("General: distanceFactorColoc="+distanceFactorColoc+", previewA="+previewA+", previewB="+previewB);
+        IJ.log("Both channels: medianFilter="+doMedian+", distanceFactorColoc="+distanceFactorColoc);
+        IJ.log("General: clearTable="+clearTable+", previewA="+previewA+", previewB="+previewB+"\n");
     }
 
 

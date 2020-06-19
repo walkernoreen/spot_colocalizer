@@ -18,7 +18,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.Math.round;
 
 public class SpotColocalizer{
     // TODO:  name it SpotProcessor?
@@ -26,7 +25,8 @@ public class SpotColocalizer{
     // 2D or 3D, single time point. for colocalization: at least 2 channels
     private final ImagePlus imp;
 
-    final String titleResultsTable="ResultsSpotColocalization";
+    final String titleSummaryTable ="Summary Counts Spot Colocalization";
+    final String titleDetailedTable="Detailed Results Spot Colocalization";
 
 
     public SpotColocalizer(final ImagePlus inputImp) {
@@ -40,11 +40,12 @@ public class SpotColocalizer{
         // single time point
         if (imp.getNFrames()>1) {IJ.error("Spot Colocalizer", "Image must be a single time point.");}
         if (imp.getNChannels()==1) {IJ.error("Spot Colocalizer", "Image must have at least 2 channels.");}
+        // TODO: for single channel aanlysis: check the >=2 channel in plugin and not here
     }
 
 
     /**
-     * Finds spots in a single channel of an image. For spot detection the trackmate LoG detector is used.
+     * Detects spots in a single channel of an image. For spot detection the trackmate LoG detector is used.
      * If the input image has a roi, then spot detection is restricted to this region.
      * @param channelnr which channel to use. count starts at 1
      * @param radius_um Spot radius in um (for LoGDetector).
@@ -54,6 +55,7 @@ public class SpotColocalizer{
      *                  is a heuristic and not perfect.
      * @param doSubpixel for LoG Detector
      * @param doMedian for LogDetector
+     * @return a list with (trackmate) spot objects
      */
     public <T extends RealType<T>> List<Spot> detectSpots(int channelnr, double radius_um, double threshold,
                                                           boolean doSubpixel, boolean doMedian) {
@@ -163,7 +165,9 @@ public class SpotColocalizer{
      * @param spotsA from detectSpots(...)
      * @param spotsB from detectSpots(...), different channel
      * @param maxdist_um Maximum distance (in um) between spot centers to still be considered colocalized. Typically 1.0*spotradius
-     * @return ColocResult with list of non-colocalized and colocalized spots
+     * @return ColocResult with list of non-colocalized and colocalized spots.
+     *              Order for colocalized spots is such that: same list idx -> colocalized spot pair:
+     *              spotsAvg_coloc[idx] = mean(spotsA_coloc[idx]+spotsB_coloc[idx])
      */
     public ColocResult findSpotCorrespondences(List<Spot> spotsA, List<Spot> spotsB, double maxdist_um) {
         // work with squared distances
@@ -253,13 +257,18 @@ public class SpotColocalizer{
         }
 
         // colocalized spots
-        List<Spot> spots_coloc = new ArrayList<>();
+        List<Spot> spotsA_coloc = new ArrayList<>();
+        List<Spot> spotsB_coloc = new ArrayList<>();
+        List<Spot> spotsAvg_coloc = new ArrayList<>(); // spots at the avg position and with avg radius of the colocalized pair
         for (int i = 0; i < numspotsA; i++) {
             if (spotsBPartnersOfSpotsA[i] != null) {
-                // create a new spot at the average position and with average radius
                 Spot spotA = spotsA.get(i);
                 Spot spotB = spotsB.get(spotsBPartnersOfSpotsA[i]);
 
+                spotsA_coloc.add(spotA);
+                spotsB_coloc.add(spotB);
+
+                // create a new spot at the average position and with average radius
                 double[] posA = getPositionCalib(spotA);
                 double[] posB = getPositionCalib(spotB);
                 Double radA = spotA.getFeature(Spot.RADIUS);
@@ -267,13 +276,19 @@ public class SpotColocalizer{
 
                 Spot spotAvg = new Spot(0.5 * (posA[0] + posB[0]), 0.5 * (posA[1] + posB[1]), 0.5 * (posA[2] + posB[2]),
                         0.5 * (radA + radB), -1);
-                spots_coloc.add(spotAvg);
+                spotsAvg_coloc.add(spotAvg);
             }
         }
 
-        IJ.log("Computed colocalization: "+spots_coloc.size()+" colocalized spots.");
+        IJ.log("Computed colocalization: "+spotsAvg_coloc.size()+" colocalized spots.");
 
-        return new ColocResult(spotsA_noncoloc, spotsB_noncoloc, spots_coloc);
+        // should never happen
+        if (spotsA.size()!=(spotsA_coloc.size()+spotsA_noncoloc.size()) ||
+            spotsB.size()!=(spotsB_coloc.size()+spotsB_noncoloc.size())) {
+            IJ.error("Spot Colocalization","Error in findSpotCorrespondences. Counts don't match.");
+        }
+
+        return new ColocResult(spotsA_noncoloc, spotsB_noncoloc, spotsA_coloc, spotsB_coloc, spotsAvg_coloc);
     }
 
 
@@ -305,7 +320,7 @@ public class SpotColocalizer{
 
         // create visualization overlay
         Overlay ov = SpotVisualization.createOverlayOfSpots(imp, CR.spotsA_noncoloc, Color.magenta);
-        ov= SpotVisualization.createOverlayOfSpots(imp, CR.spots_coloc, ov,Color.yellow);
+        ov= SpotVisualization.createOverlayOfSpots(imp, CR.spotsAvg_coloc, ov,Color.yellow);
         ov= SpotVisualization.createOverlayOfSpots(imp, CR.spotsB_noncoloc, ov,Color.green);
 
         // add roi to overlay
@@ -317,34 +332,31 @@ public class SpotColocalizer{
 
         imp.setOverlay(ov);
 
-        //display counts in results table
-        ResultsTable rt = fillResultsTable(channelA, channelB, spotsA, spotsB, CR.spotsA_noncoloc,
-                CR.spotsB_noncoloc, CR.spots_coloc, clearTable);
-        rt.show(titleResultsTable);
+        //display spots & summary in results tables
+        ResultsTable rtdetailed=fillDetailedTable(channelA,channelB,CR,clearTable);
+        rtdetailed.show(titleDetailedTable);
+
+        ResultsTable rtsummary = fillSummaryTable(channelA, channelB, CR, clearTable);
+        rtsummary.show(titleSummaryTable);
+
+
 
     }
 
 
     /**
      * Adds all counts of a colocalization analysis (spot detections, colocalized count etc.) to a results table
-     * (with custom title). Grabs the open table if available, otherwise creates a new one. Previous results can
+     * (custom table title). Grabs the open table if available, otherwise creates a new one. Previous results can
      * optionally be cleared.
      * @param channelA which channel id, for this and most other parameters, see runFullColocalizationAnalyis(...)
      * @param channelB
-     * @param spotsA
-     * @param spotsB
-     * @param spotsA_noncoloc
-     * @param spotsB_noncoloc
-     * @param spots_coloc
-     * @param clearTable if True, table is emptied before new valuea are added
-     * @return
-     */
-    private ResultsTable fillResultsTable(int channelA, int channelB, List<Spot> spotsA, List<Spot> spotsB,
-                                          List<Spot> spotsA_noncoloc, List<Spot> spotsB_noncoloc, List<Spot> spots_coloc,
-                                          boolean clearTable) {
+     * @param CR: colocalization result obtained from findSpotCorrespondences(...)
+     * @return summary results table
+     * */
+    private ResultsTable fillSummaryTable(int channelA, int channelB, ColocResult CR , boolean clearTable) {
 
         // add counts to results table
-        TextWindow window = (TextWindow) WindowManager.getWindow(titleResultsTable);
+        TextWindow window = (TextWindow) WindowManager.getWindow(titleSummaryTable);
         ResultsTable rt;
         if (window!=null) {
             rt = window.getTextPanel().getResultsTable();
@@ -357,25 +369,29 @@ public class SpotColocalizer{
         }
 
         rt.setPrecision(4);
+        rt.showRowNumbers(true);
 
-        String descrA = "ch "+channelA;
-        String descrB="ch "+channelB;
+        String descrA = "(ch "+channelA+")";
+        String descrB="(ch "+channelB+")";
+
+        int countA=CR.spotsA_noncoloc.size()+CR.spotsA_coloc.size();
+        int countB=CR.spotsB_noncoloc.size()+CR.spotsB_coloc.size();
 
         rt.incrementCounter();
-    rt.addLabel(imp.getTitle());
-        rt.addValue("Total " + descrA, spotsA.size());
-        rt.addValue("Total " + descrB, spotsB.size());
-        rt.addValue("Coloc ", spots_coloc.size());
-        rt.addValue("Not coloc "+descrA, spotsA_noncoloc.size());
-        rt.addValue("Not coloc "+descrB, spotsB_noncoloc.size());
-        if (spotsA.size()>0) {
-            rt.addValue("Fraction coloc "+descrA, spots_coloc.size()/ (float) spotsA.size());
+        rt.addLabel(imp.getTitle());
+        rt.addValue("Count total " + descrA, countA);
+        rt.addValue("Count total " + descrB, countB);
+        rt.addValue("Count coloc ", CR.spotsAvg_coloc.size());
+        rt.addValue("Count not coloc "+descrA, CR.spotsA_noncoloc.size());
+        rt.addValue("Count not coloc "+descrB, CR.spotsB_noncoloc.size());
+        if (countA>0) {
+            rt.addValue("Fraction coloc "+descrA, CR.spotsAvg_coloc.size()/ (float) countA);
         }
         else {
             rt.addValue("Fraction coloc " + descrA, Double.NaN);
         }
-        if (spotsB.size()>0) {
-            rt.addValue("Fraction coloc " + descrB, spots_coloc.size() /(float) spotsB.size());
+        if (countB>0) {
+            rt.addValue("Fraction coloc " + descrB, CR.spotsAvg_coloc.size() /(float) countB);
         }
         else {
             rt.addValue("Fraction coloc " + descrB, Double.NaN);
@@ -388,17 +404,85 @@ public class SpotColocalizer{
 
 
     /**
-     * Little helper class to move the lists of noncolocalized & colocalized spots around
+     * Adds all spots to a results table (custom table title). Added spot properties are channel, position,
+     * radius and whether they are colocalized.
+     *  Grabs the open table if available, otherwise creates a new one. Previous results can optionally be cleared.
+     * @param channelA which channel id, for this and most other parameters, see runFullColocalizationAnalyis(...)
+     * @param channelB
+     * @param CR: colocalization result obtained from findSpotCorrespondences(...)
+     * @param clearTable if True, table is emptied before new valueS are added
+     * @return detailed results table
+     */
+    private ResultsTable fillDetailedTable(int channelA, int channelB, ColocResult CR, boolean clearTable) {
+
+        // add counts to results table
+        TextWindow window = (TextWindow) WindowManager.getWindow(titleDetailedTable);
+        ResultsTable rt;
+        if (window!=null) {
+            rt = window.getTextPanel().getResultsTable();
+        } else {
+            rt = new ResultsTable();
+        }
+
+        if (clearTable) {
+            rt.reset();
+        }
+
+        rt.setPrecision(4);
+        rt.showRowNumbers(true);
+
+        appendDetailedResults(rt,CR.spotsA_coloc,channelA,true);
+        appendDetailedResults(rt,CR.spotsA_noncoloc,channelA,false);
+        appendDetailedResults(rt,CR.spotsB_coloc,channelB,true);
+        appendDetailedResults(rt,CR.spotsB_noncoloc,channelB,false);
+
+        return rt;
+    }
+
+
+    /**
+     * Helper for fillDetailedResultsTable
+     */
+    private void appendDetailedResults (ResultsTable rt, List<Spot> spots, int channelId, boolean isColocalized) {
+        for (int i = 0; i < spots.size(); i++) {
+            Spot spot = spots.get(i);
+            double[] positionCalib = getPositionCalib(spot);
+            double[] positionPx = getPositionPx(spot, imp.getCalibration());
+
+            rt.incrementCounter();
+            rt.addLabel(imp.getTitle());
+            rt.addValue("Channel", channelId);
+            rt.addValue("x(um)", positionCalib[0]);
+            rt.addValue("y(um)", positionCalib[1]);
+            rt.addValue("z(um)", positionCalib[2]);
+            rt.addValue("radius(um)", spot.getFeature(Spot.RADIUS));
+            rt.addValue("x(pixel)", positionPx[0]);
+            rt.addValue("y(pixel)", positionPx[1]);
+            rt.addValue("z(pixel)", positionPx[2]);
+            rt.addValue("isColocalized", String.valueOf(isColocalized));
+        }
+    }
+
+
+    /**
+     * Little helper class to collect the lists of colocalized and noncolocalized spots.
+     * spotsAvg_coloc: spots are located at the avg position and have the avg radius of the colocalized spot pair from
+     *      channel A and B. Basically: spotsAvg_coloc[idx] = mean(spotsA_coloc[idx]+spotsB_coloc[idx])
      */
     public static class ColocResult {
-        List<Spot> spotsA_noncoloc;
-        List<Spot> spotsB_noncoloc;
-        List<Spot> spots_coloc;
+        final List<Spot> spotsA_noncoloc;
+        final List<Spot> spotsB_noncoloc;
+        final List<Spot> spotsA_coloc;
+        final List<Spot> spotsB_coloc;
+        final List<Spot> spotsAvg_coloc;
 
-        ColocResult(List<Spot> spotsA_non, List<Spot> spotsB_non, List<Spot> spots_col) {
-            spotsA_noncoloc=spotsA_non;
-            spotsB_noncoloc=spotsB_non;
-            spots_coloc=spots_col;
+        ColocResult(List<Spot> spotsA_noncoloc, List<Spot> spotsB_noncoloc, List<Spot> spotsA_coloc,
+                    List<Spot> spotsB_coloc, List<Spot> spotsAvg_coloc) {
+            this.spotsA_noncoloc = spotsA_noncoloc;
+            this.spotsB_noncoloc = spotsB_noncoloc;
+            this.spotsA_coloc = spotsA_coloc;
+            this.spotsB_coloc = spotsB_coloc;
+            this.spotsAvg_coloc = spotsAvg_coloc;
         }
     }
 
