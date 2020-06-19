@@ -4,23 +4,13 @@ package de.mpicbg.scf.spotcoloc;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.*;
-import org.scijava.Cancelable;
 import org.scijava.ItemVisibility;
-import org.scijava.command.Command;
-import org.scijava.command.ContextCommand;
-import org.scijava.command.DynamicCommand;
 import org.scijava.command.InteractiveCommand;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import org.scijava.widget.Button;
 
-import javax.swing.*;
 
 
 /*
@@ -30,7 +20,7 @@ import javax.swing.*;
 // ToDo s: also table with spots positions?
 // ToDo add help button?
 
-@Plugin(type = InteractiveCommand.class, menuPath = "Plugins>Spot Colocalization > SpotColoc") // TODO nicer path
+@Plugin(type = InteractiveCommand.class, initializer = "initialize_spotcoloc", menuPath = "Plugins>Spot Colocalization > SpotColoc") // TODO nicer path
 public class SpotColocalizerPlugin extends InteractiveCommand  { //implements MouseListener {
 
     @Parameter
@@ -39,7 +29,7 @@ public class SpotColocalizerPlugin extends InteractiveCommand  { //implements Mo
     @Parameter
     ImagePlus imp;
 
-    // -- Dialog Parameters --
+    // -- Dialog Parameters -- // ToDo: rearrange the GUI + update the print fcts with all params
     // channel A
     @Parameter(label = "---  Channel A" , visibility = ItemVisibility.MESSAGE, persist = false, required=false)
     private String m1 = " (spots displayed magenta) ---";
@@ -66,12 +56,22 @@ public class SpotColocalizerPlugin extends InteractiveCommand  { //implements Mo
     @Parameter(label="quality threshold")
     private double thresholdB=100.0;
 
-    // general
-    @Parameter(label = "---  General", visibility = ItemVisibility.MESSAGE, persist = false, required=false)
+    // both channels
+    @Parameter(label = "---  Both channels", visibility = ItemVisibility.MESSAGE, persist = false, required=false)
     private String m3=" ---";
+
+    @Parameter(label = "median filtering", description="Filtering a large image slows down processing.")
+    private boolean doMedian=false;
 
     @Parameter(label="Coloc distance factor (default: 1)", description = "Spots are considered colocalized if their centers are closer than distance_factor*0.5*(radiusA+radiusB). factor=1: centers of spot pair are closer than their average radius.")
     private double distanceFactorColoc=1.0;
+
+    // general
+    @Parameter(label = "---  General", visibility = ItemVisibility.MESSAGE, persist = false, required=false)
+    private String m4=" ---";
+
+    @Parameter(label="Clear results tables")
+    private boolean clearTable=false;
 
     @Parameter(label="Include spots A in preview", persist = false)
     private boolean previewA=false;
@@ -86,10 +86,8 @@ public class SpotColocalizerPlugin extends InteractiveCommand  { //implements Mo
     @Parameter(label = "Full Colocalization Analysis", callback="fullAnalysis_callback" )
     private Button analysisButton;
 
-    // -- more private fields --
-    // TODO also add (do subpixel) and do median to the exposed options? (+rt display options?)
+    // -- private fields --
     final private boolean doSubixel=true;
-    final private boolean doMedian=false;
 
     Roi currentRoi;
 
@@ -98,20 +96,29 @@ public class SpotColocalizerPlugin extends InteractiveCommand  { //implements Mo
 
 
     /**
-     * Generates spots preview
+     * Initializes plugin. Does sanity checks within the SpotColocalizer initializer
+     */
+    private void initialize_spotcoloc(){
+        spotColocalizer = new SpotColocalizer(imp);
+    }
+
+    /**
+     * Generates spots preview. Triggered by "preview" button.
      */
     private void generatePreview_callback() {
-        // reset image overlay, grab roi
-        prepare();
+        currentRoi=imp.getRoi();
+        imp.setOverlay(null);
 
-        //printParameters();
+        printParameters();
 
         // show spot detection previews
         if (checkParameters()) {
-            //System.out.println("params ok. generating preview");
             spotColocalizer.generateDetectionPreviewMultiChannel(previewA, previewB, channelA, radiusA_um,
                     thresholdA, channelB, radiusB_um, thresholdB, doSubixel, doMedian);
+        } else {
+            IJ.log("Issue with parameters.");
         }
+
         /* could run in separate thread, then e.g. start the next preview once this one is joined:
         new Thread(new Runnable() {
                 @Override
@@ -127,21 +134,19 @@ public class SpotColocalizerPlugin extends InteractiveCommand  { //implements Mo
 
     /**
      * Full colocalization analysis: detects spots and finds colocalized spots. Creates a results table.
+     * Triggered by "full analysis" button.
      */
     private void fullAnalysis_callback() {
-        // reset image overlay, grab roi
-        prepare();
+        currentRoi=imp.getRoi();
+        imp.setOverlay(null);
 
         printParametersToLog();
 
         // do spot detection + colocalization. displays results table
         if (checkParameters()) {
-            //System.out.println("params ok. running full analysis.");
-
             spotColocalizer.runFullColocalizationAnalysis(channelA, radiusA_um, thresholdA,
                     channelB, radiusB_um, thresholdB, distanceFactorColoc,
-                    doSubixel, doMedian, true); // TODO: cleartable? -> expose this option?
-            // ToDo make an option that returns the results?
+                    doSubixel, doMedian, clearTable);
         } else {
             IJ.error("Parameter error in Spot Colocalization",
                     "Some parameters were not ok. Not running plugin.\n" +
@@ -150,14 +155,6 @@ public class SpotColocalizerPlugin extends InteractiveCommand  { //implements Mo
     }
 
 
-    /**
-     * Helper to update data before generating preview or doing full analysis
-     */
-    private void prepare() {
-        spotColocalizer=new SpotColocalizer(imp);             //TODO: initialize only once?
-        currentRoi=imp.getRoi();
-        imp.setOverlay(null);
-    }
 
 
    /* @Override

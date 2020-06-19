@@ -6,7 +6,6 @@ import fiji.plugin.trackmate.detection.LogDetector;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
-import ij.gui.OvalRoi;
 import ij.gui.Overlay;
 import ij.gui.Roi;
 import ij.measure.Calibration;
@@ -20,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.Math.round;
-import static java.lang.Math.sqrt;
 
 public class SpotColocalizer{
     // TODO:  name it SpotProcessor?
@@ -30,7 +28,6 @@ public class SpotColocalizer{
 
     final String titleResultsTable="ResultsSpotColocalization";
 
-    // TODO how to handle doSubPixel, doMedian . member, or function argument?
 
     public SpotColocalizer(final ImagePlus inputImp) {
         imp=inputImp;
@@ -39,11 +36,10 @@ public class SpotColocalizer{
     }
 
 
-    private void checkInput() { // TODO more
+    private void checkInput() {
         // single time point
-        if (imp.getNFrames()>1) {
-            IJ.error("Spot Colocalizer", "Image must be a single time point.");
-        }
+        if (imp.getNFrames()>1) {IJ.error("Spot Colocalizer", "Image must be a single time point.");}
+        if (imp.getNChannels()==1) {IJ.error("Spot Colocalizer", "Image must have at least 2 channels.");}
     }
 
 
@@ -106,8 +102,9 @@ public class SpotColocalizer{
                             spots.add(currentspot);
                         }
                     }
-                    IJ.log("Detected spots in channel "+channelnr+" (within Roi): "+spots.size() + ".");
                 }
+                IJ.log("Detected spots in channel "+channelnr+" (within Roi): "+spots.size() + ".");
+
             } else {
                 IJ.log("The spot detector could not process the data.");
             }
@@ -141,12 +138,12 @@ public class SpotColocalizer{
 
         if (previewChA) {
             List<Spot> spotsA = detectSpots(channelA, radiusA_um, thresholdA, doSubPixel, doMedian);
-            ov = createOverlayOfSpots(spotsA, ov, Color.magenta);
+            ov = SpotVisualization.createOverlayOfSpots(imp, spotsA, ov, Color.magenta);
         }
 
         if (previewChB) {
             List<Spot> spotsB = detectSpots(channelB, radiusB_um, thresholdB, doSubPixel, doMedian);
-            ov = createOverlayOfSpots(spotsB, ov, Color.green);
+            ov = SpotVisualization.createOverlayOfSpots(imp, spotsB, ov, Color.green);
         }
 
         imp.setOverlay(ov);
@@ -307,9 +304,9 @@ public class SpotColocalizer{
         ColocResult CR = findSpotCorrespondences(spotsA, spotsB, maxdist_um);
 
         // create visualization overlay
-        Overlay ov = createOverlayOfSpots(CR.spotsA_noncoloc, Color.magenta);
-        ov=createOverlayOfSpots(CR.spots_coloc, ov,Color.yellow);
-        ov=createOverlayOfSpots(CR.spotsB_noncoloc, ov,Color.green);
+        Overlay ov = SpotVisualization.createOverlayOfSpots(imp, CR.spotsA_noncoloc, Color.magenta);
+        ov= SpotVisualization.createOverlayOfSpots(imp, CR.spots_coloc, ov,Color.yellow);
+        ov= SpotVisualization.createOverlayOfSpots(imp, CR.spotsB_noncoloc, ov,Color.green);
 
         // add roi to overlay
         Roi roi = imp.getRoi();
@@ -435,144 +432,4 @@ public class SpotColocalizer{
     }
 
 
-    /** Like createOverlayOfSpots(List, double, Overlay, Color) but with default values.
-     * Creates new Overlay.
-     */
-    public Overlay createOverlayOfSpots(List<Spot> spots, double rad_um, Color color) {
-        return createOverlayOfSpots(spots, rad_um, new Overlay(), color);
-    }
-
-    /** Like createOverlayOfSpots(List, ImagePlus, double, Overlay, Color) but with default values.
-     * Creates new Overlay, uses radius from the spots object.
-     */
-    public Overlay createOverlayOfSpots(List<Spot> spots, Color color) {
-        if (spots.size() == 0) return new Overlay();
-        double rad_um = spots.get(0).getFeature(Spot.RADIUS);
-        return createOverlayOfSpots(spots, rad_um, new Overlay(), color);
-    }
-
-    /** Like createOverlayOfSpots(List, double, Overlay, Color) but with default values.
-     * Uses radius from the spots object.
-     */
-    public Overlay createOverlayOfSpots(List<Spot> spots, Overlay ov, Color color) {
-        if (spots.size() == 0) return ov;
-        double rad_um = spots.get(0).getFeature(Spot.RADIUS);
-        return createOverlayOfSpots(spots, rad_um, ov, color);
-    }
-
-    /** Like createOverlayOfSpots(List, double, Overlay, Color) but with default values.
-     * Creates new Overlay, uses radius from the spots object, uses color red.
-     */
-    public Overlay createOverlayOfSpots(List<Spot> spots) {
-        if (spots.size() == 0) return new Overlay();
-        double rad_um = spots.get(0).getFeature(Spot.RADIUS);
-        return createOverlayOfSpots(spots, rad_um, new Overlay(), Color.magenta);
-    }
-
-
-
-    /** TODO move this to a separate SpotVisualizer static class (the whole family)?.
-     * Draws the spots as 3-dimensional spheres/circles into an overlay. Works also for 2D.
-     * See also createOverlayOfSpots(..) variants where rad_um, ov and color are optional.
-     * Inspired by trackmate spot visualization.
-     * Variables in this function are in pixel units unless appended  by um.
-     * @param spots list of trackmate spot objects. obtained from detectSpots(..)
-     * @param rad_um spot radius in um
-     * @param ov existing overlay to which spots will be added.
-     * @param color
-     * @return ov with added spots
-     */
-    public Overlay createOverlayOfSpots(List<Spot> spots, double rad_um, Overlay ov, Color color) {
-        // pretty plotting
-        double xoffset = 0.5; // px (overlay seems shifted when being drawn)
-        double yoffset = 0.5;
-        double strokewidth = 1; // 0.5 or 1
-
-        // get image properties
-        Calibration calib = imp.getCalibration();
-        int nChannels = imp.getNChannels();
-
-        // if no spots exist, we're already done
-        if (spots.size() == 0) return ov;
-
-        // spot radius in px
-        double rad0xy = rad_um / calib.pixelWidth;
-        double rad0z = rad_um / calib.pixelDepth;
-
-        // == process all spots ==
-        for (Spot spot : spots) {
-            // spot center in px
-            double[] pos = getPositionPx(spot, calib); //x,y,z
-
-            // draw circle into central slice
-            int slice_ctr = (int) round(pos[2] + 1); // slice=z+1
-            ov = singleCircleToOverlay(ov, pos[0], pos[1], slice_ctr, rad0xy, nChannels, color, strokewidth, xoffset, yoffset);
-
-            // draw circles into slices above and below
-            for (int deltaz = 1; deltaz < rad0z + 2; deltaz++) { //step through slices (circle extends to maximally slice_ctr+-rad0x +=rounding error)
-                double radxy;
-
-                //slice shift in um
-                double deltaz_um = deltaz * calib.pixelDepth;
-
-                // compute px radius of circle in this slice
-                if (deltaz_um < rad_um) {
-                    radxy = (sqrt(rad_um * rad_um - deltaz_um * deltaz_um)) / calib.pixelWidth;
-                } else {
-                    break;
-                }
-
-                // draw circle rois
-                if (slice_ctr - deltaz > 0) {
-                    ov = singleCircleToOverlay(ov, pos[0], pos[1], slice_ctr - deltaz, radxy, nChannels, color, strokewidth, xoffset, yoffset);
-                }
-                if (slice_ctr + deltaz < imp.getNSlices() + 1) {
-                    ov = singleCircleToOverlay(ov, pos[0], pos[1], slice_ctr + deltaz, radxy, nChannels, color, strokewidth, xoffset, yoffset);
-                }
-            }
-        }
-        return ov;
-    }
-
-
-
-
-    /**
-     * Adds a single circle to the overlay. Overlay is added to all channels.
-     * See also function variant with default values.
-     * @param ov overlay to which circle will be added
-     * @param xctr in px
-     * @param yctr in px
-     * @param slice one-based
-     * @param radius in px
-     * @param color
-     * @param strokewidth
-     * @param xoffset shift-correction in x during plotting. xctr -> xtr+xoffset
-     * @param yoffset shift-correction in y ...
-     * @return overlay with added circle
-     */
-    private static Overlay singleCircleToOverlay(Overlay ov, double xctr, double yctr, int slice, double radius,
-                                     int nChannels, Color color, double strokewidth, double xoffset,double yoffset) {
-        for (int channel = 1; channel < nChannels+1; channel++) {
-            double xleft = xctr + xoffset - radius;
-            double ytop = yctr + yoffset - radius;
-
-            OvalRoi spotroi = new OvalRoi(xleft, ytop, 2 * radius, 2 * radius);
-            spotroi.setPosition(channel, slice, 1);
-            spotroi.setStrokeColor(color);
-            spotroi.setStrokeWidth(strokewidth);
-            ov.add(spotroi);
-        }
-        return ov;
-    }
-
-
-    /**
-     * Like singleCircleToOverlay(Overlay, double, double, int, double, int, Color, double, double, double)
-     * but with default parameters
-     */
-    private static Overlay singleCircleToOverlay(Overlay ov, double xctr, double yctr, int slice, double radius,
-                                                 int nChannels, Color color) {
-        return singleCircleToOverlay(ov,xctr,yctr, slice,radius,nChannels,color, 0,0,0 );
-    }
 }
