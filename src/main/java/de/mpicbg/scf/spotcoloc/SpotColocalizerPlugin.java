@@ -20,6 +20,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import org.scijava.widget.Button;
 
+import javax.swing.*;
+
 
 /*
  * Author: Noreen Walker, Scientific Computing Facility, MPI-CBG
@@ -98,20 +100,28 @@ public class SpotColocalizerPlugin extends InteractiveCommand  { //implements Mo
     /**
      * Generates spots preview
      */
-    // TODO: new thread? and IJ update with swingutilities?
     private void generatePreview_callback() {
-        // reset image, grab roi
+        // reset image overlay, grab roi
         prepare();
 
-        System.out.println("Preview callback");
-        printParameters();
+        //printParameters();
 
         // show spot detection previews
         if (checkParameters()) {
-            System.out.println("params ok. generating preview");
+            //System.out.println("params ok. generating preview");
             spotColocalizer.generateDetectionPreviewMultiChannel(previewA, previewB, channelA, radiusA_um,
                     thresholdA, channelB, radiusB_um, thresholdB, doSubixel, doMedian);
         }
+        /* could run in separate thread, then e.g. start the next preview once this one is joined:
+        new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    System.out.println("params ok. generating preview");
+                    spotColocalizer.generateDetectionPreviewMultiChannel(previewA, previewB, channelA, radiusA_um,
+                            thresholdA, channelB, radiusB_um, thresholdB, doSubixel, doMedian);
+                }
+            }).start();
+            */
     }
 
 
@@ -119,14 +129,14 @@ public class SpotColocalizerPlugin extends InteractiveCommand  { //implements Mo
      * Full colocalization analysis: detects spots and finds colocalized spots. Creates a results table.
      */
     private void fullAnalysis_callback() {
-        // reset image, grab roi
+        // reset image overlay, grab roi
         prepare();
 
-        printParameters();
+        printParametersToLog();
 
         // do spot detection + colocalization. displays results table
         if (checkParameters()) {
-            System.out.println("params ok. running full analysis.");
+            //System.out.println("params ok. running full analysis.");
 
             spotColocalizer.runFullColocalizationAnalysis(channelA, radiusA_um, thresholdA,
                     channelB, radiusB_um, thresholdB, distanceFactorColoc,
@@ -135,7 +145,7 @@ public class SpotColocalizerPlugin extends InteractiveCommand  { //implements Mo
         } else {
             IJ.error("Parameter error in Spot Colocalization",
                     "Some parameters were not ok. Not running plugin.\n" +
-                            "See Console Window for current parameters.");
+                            "See Log Window for current parameters.");
         }
     }
 
@@ -144,23 +154,25 @@ public class SpotColocalizerPlugin extends InteractiveCommand  { //implements Mo
      * Helper to update data before generating preview or doing full analysis
      */
     private void prepare() {
-        spotColocalizer=new SpotColocalizer(imp);             //TODO: initialie only once?
+        spotColocalizer=new SpotColocalizer(imp);             //TODO: initialize only once?
         currentRoi=imp.getRoi();
         imp.setOverlay(null);
     }
 
 
-    @Override
+   /* @Override
     public void preview() {
+        // Not implemented. Analysis is called via button callbacks
         super.preview();
-        System.out.println("Previewing - but doing nothing (but saving params)");
-    }
+    }*/
 
 
-    @Override
+   /* @Override
     public void run() {
-            System.out.println("Running - but doing nothing (but saving params)");
-        }
+        // Not implemented. Analysis is called via button callbacks
+        super.run();
+    }
+    */
 
 
 
@@ -189,7 +201,18 @@ public class SpotColocalizerPlugin extends InteractiveCommand  { //implements Mo
         System.out.print("Channel B: ");
         System.out.println("channelB="+channelB+", radiusB_um="+radiusB_um+", thresholdB="+thresholdB);
         System.out.print("General: ");
-        System.out.println("distanceFactorColoc="+distanceFactorColoc+", previewA="+previewA+", previewB="+previewB);
+        System.out.println("distanceFactorColoc="+distanceFactorColoc+", previewA="+previewA+", previewB="+previewB+"\n");
     }
+
+    /**
+     * Pretty printing of all parameters to the Log.
+     */
+    public final void printParametersToLog() {
+        IJ.log("\nChannel A: channelA="+channelA+", radiusA_um="+radiusA_um+", thresholdA="+thresholdA);
+        IJ.log("Channel B: channelB="+channelB+", radiusB_um="+radiusB_um+", thresholdB="+thresholdB);
+        IJ.log("General: distanceFactorColoc="+distanceFactorColoc+", previewA="+previewA+", previewB="+previewB);
+    }
+
+
 
 }

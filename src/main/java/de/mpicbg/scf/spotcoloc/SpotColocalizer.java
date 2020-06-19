@@ -23,11 +23,10 @@ import static java.lang.Math.round;
 import static java.lang.Math.sqrt;
 
 public class SpotColocalizer{
-    // TODO show IJ.showStatus when it si computing the rpeview
-    // TODO: or name it SpotProcessor? Make all the channel names + thresholds field variables?
+    // TODO:  name it SpotProcessor?
 
     // 2D or 3D, single time point. for colocalization: at least 2 channels
-    private ImagePlus imp; // TODO make final?
+    private final ImagePlus imp;
 
     final String titleResultsTable="ResultsSpotColocalization";
 
@@ -36,11 +35,11 @@ public class SpotColocalizer{
     public SpotColocalizer(final ImagePlus inputImp) {
         imp=inputImp;
 
-        sanityChecks();
+        checkInput();
     }
 
 
-    private void sanityChecks() { // TODO more
+    private void checkInput() { // TODO more
         // single time point
         if (imp.getNFrames()>1) {
             IJ.error("Spot Colocalizer", "Image must be a single time point.");
@@ -93,8 +92,6 @@ public class SpotColocalizer{
             if (detector.process()) {
                 // Get the list of detected spots
                 List<Spot> spotsraw = detector.getResult();
-                IJ.log("\nSpot detection in Channel " + channelnr + " finished.");
-                IJ.log("Found " + spotsraw.size() + " spots (in bounding box around roi, or full image if no roi)");
 
                 // Filter spots by ROI
                 Roi roi = imp.getRoi();
@@ -109,14 +106,14 @@ public class SpotColocalizer{
                             spots.add(currentspot);
                         }
                     }
-                    IJ.log("Filter spots by roi region: kept " + spots.size() + " spots.");
+                    IJ.log("Detected spots in channel "+channelnr+" (within Roi): "+spots.size() + ".");
                 }
             } else {
-                IJ.log("The detector could not process the data.");
+                IJ.log("The spot detector could not process the data.");
             }
         }
         catch (ArrayIndexOutOfBoundsException e) {
-            IJ.log("The detector could not process the data: Roi outside of image");
+            IJ.log("The spot detector could not process the data: Roi outside of image");
         }
 
         return spots;
@@ -277,7 +274,7 @@ public class SpotColocalizer{
             }
         }
 
-        IJ.log("\nFinished computing colocalization between spots.\n");
+        IJ.log("Computed colocalization: "+spots_coloc.size()+" colocalized spots.");
 
         return new ColocResult(spotsA_noncoloc, spotsB_noncoloc, spots_coloc);
     }
@@ -310,7 +307,7 @@ public class SpotColocalizer{
         ColocResult CR = findSpotCorrespondences(spotsA, spotsB, maxdist_um);
 
         // create visualization overlay
-        Overlay ov = createOverlayOfSpots(CR.spotsA_noncoloc, Color.red);
+        Overlay ov = createOverlayOfSpots(CR.spotsA_noncoloc, Color.magenta);
         ov=createOverlayOfSpots(CR.spots_coloc, ov,Color.yellow);
         ov=createOverlayOfSpots(CR.spotsB_noncoloc, ov,Color.green);
 
@@ -469,7 +466,7 @@ public class SpotColocalizer{
     public Overlay createOverlayOfSpots(List<Spot> spots) {
         if (spots.size() == 0) return new Overlay();
         double rad_um = spots.get(0).getFeature(Spot.RADIUS);
-        return createOverlayOfSpots(spots, rad_um, new Overlay(), Color.red);
+        return createOverlayOfSpots(spots, rad_um, new Overlay(), Color.magenta);
     }
 
 
