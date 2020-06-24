@@ -8,7 +8,6 @@ import org.scijava.ItemVisibility;
 import org.scijava.command.InteractiveCommand;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import org.scijava.prefs.PrefService;
 import org.scijava.widget.Button;
 
 
@@ -18,9 +17,11 @@ import org.scijava.widget.Button;
  * Date: 2020-06
  */
 // ToDo add help button?
+// ToDo manual macro recording?
 
 /**
- * Interactive spot detection + colocalization analysis. For macro recording use SpotColocalizerBatchPlugin.
+ * Interactive spot detection + colocalization analysis. requires at least 2 channels.
+ * For macro recording use SpotColocalizerBatchPlugin.
  */
 @Plugin(type = InteractiveCommand.class, initializer = "initialize_spotcoloc", menuPath = "Plugins>Spot Colocalization > SpotColoc") // TODO nicer path
 public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
@@ -91,14 +92,17 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
     Roi currentRoi;
 
     // spot analyzer
-    private SpotColocalizer spotColocalizer;
+    private SpotProcessor spotProcessor;
 
 
     /**
-     * Initializes plugin. Does sanity checks within the SpotColocalizer initializer
+     * Initializes plugin. Does some sanity checks. More checks done in SpotProcessor initializer
      */
     private void initialize_spotcoloc(){
-        spotColocalizer = new SpotColocalizer(imp);
+        // sanity checks
+        if (imp.getNChannels()==1) {IJ.error("Spot Colocalizer", "Image must have at least 2 channels.");}
+
+        spotProcessor = new SpotProcessor(imp);
     }
 
     /**
@@ -112,7 +116,7 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
 
         // show spot detection previews
         if (checkParameters()) {
-            spotColocalizer.generateDetectionPreviewMultiChannel(previewA, previewB, channelA, radiusA_um,
+            spotProcessor.generateDetectionPreviewMultiChannel(previewA, previewB, channelA, radiusA_um,
                     thresholdA, channelB, radiusB_um, thresholdB, doSubixel, doMedian);
         } else {
             IJ.log("Issue with parameters.");
@@ -123,7 +127,7 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
                 @Override
                 public void run() {
                     System.out.println("params ok. generating preview");
-                    spotColocalizer.generateDetectionPreviewMultiChannel(previewA, previewB, channelA, radiusA_um,
+                    spotProcessor.generateDetectionPreviewMultiChannel(previewA, previewB, channelA, radiusA_um,
                             thresholdA, channelB, radiusB_um, thresholdB, doSubixel, doMedian);
                 }
             }).start();
@@ -143,7 +147,7 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
 
         // do spot detection + colocalization. displays results table
         if (checkParameters()) {
-            spotColocalizer.runFullColocalizationAnalysis(channelA, radiusA_um, thresholdA,
+            spotProcessor.runFullColocalizationAnalysis(channelA, radiusA_um, thresholdA,
                     channelB, radiusB_um, thresholdB, distanceFactorColoc,
                     doSubixel, doMedian, clearTable);
         } else {
@@ -175,6 +179,7 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
 
     /**
      * Checks that inputs are not NaN and that neither channel nor radius is zero.
+     * Also checks that channels exists.
      * @return whether checks were passed
      */
     private final boolean checkParameters() {
@@ -182,8 +187,14 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
                 Double.isNaN(channelB) || Double.isNaN(radiusB_um) || Double.isNaN(thresholdB) ||
                 Double.isNaN(distanceFactorColoc));
         boolean noZeros = !(channelA==0 || radiusA_um==0 || channelB==0 || radiusB_um==0 );
-        return (noNaNs && noZeros);
+        boolean channelOk = channelA>=1 && channelA<=imp.getNChannels() && channelB>=1 && channelB<=imp.getNChannels();
+        if (!channelOk) {
+            IJ.error("Error", "One or more invalid channel numbers: "+channelA+", "+channelB);
+        }
+        return (noNaNs && noZeros && channelOk);
     }
+
+
 
 
     /**

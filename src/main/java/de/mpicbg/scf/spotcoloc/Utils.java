@@ -40,11 +40,11 @@ public class Utils {
             if (channelnr <= nChannels) {
                 img = Views.hyperSlice(img, 2, channelnr - 1); // xyc(zt)
             } else {
-                IJ.log("Error: channel " + channelnr + " does not exist in multichannel image.");
+                IJ.error("Error: channel " + channelnr + " does not exist in multichannel image.");
                 return null;
             }
         } else if (channelnr > 1) {
-            IJ.log("Warning: Image has only single channel but a higher channel number was selected. Ignoring channel selection.");
+            IJ.error("Warning: Image has only single channel but a higher channel number was selected. Ignoring channel selection.");
         }
 
         return img;

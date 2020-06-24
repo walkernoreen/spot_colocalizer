@@ -43,7 +43,7 @@ public class Main {
        imp.show();
 
        // invoke the plugin (IJ2 style)
-        ij.command().run(SpotColocalizerInteractivePlugin.class, true);
+        ij.command().run(SpotDetectorInteractivePlugin.class, true);
 
         // automatize input for all @Parameters
       /*  Map<String, Object> map = new HashMap<>();

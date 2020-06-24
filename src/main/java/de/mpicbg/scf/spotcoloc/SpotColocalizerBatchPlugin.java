@@ -6,7 +6,6 @@ import ij.gui.Roi;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import org.scijava.widget.Button;
 
 
 
@@ -65,18 +64,18 @@ public class SpotColocalizerBatchPlugin implements Command {
     Roi currentRoi;
 
     // spot analyzer
-    private SpotColocalizer spotColocalizer;
+    private SpotProcessor spotProcessor;
 
 
     @Override
     public void run() {
-        spotColocalizer = new SpotColocalizer(imp);
+        spotProcessor = new SpotProcessor(imp);
         currentRoi = imp.getRoi();
         imp.setOverlay(null);
 
         // do spot detection + colocalization. displays results table
         if (checkParameters()) {
-            spotColocalizer.runFullColocalizationAnalysis(channelA, radiusA_um, thresholdA,
+            spotProcessor.runFullColocalizationAnalysis(channelA, radiusA_um, thresholdA,
                     channelB, radiusB_um, thresholdB, distanceFactorColoc,
                     doSubixel, doMedian, clearTable);
         } else {
@@ -88,13 +87,20 @@ public class SpotColocalizerBatchPlugin implements Command {
 
     /**
      * Checks that inputs are not NaN and that neither channel nor radius is zero.
+     * Also checks that channels exists.
      * @return whether checks were passed
      */
     private final boolean checkParameters() {
         boolean noNaNs = !(Double.isNaN(channelA) || Double.isNaN(radiusA_um) || Double.isNaN(thresholdA) ||
                 Double.isNaN(channelB) || Double.isNaN(radiusB_um) || Double.isNaN(thresholdB) ||
                 Double.isNaN(distanceFactorColoc));
-        boolean noZeros = !(channelA == 0 || radiusA_um == 0 || channelB == 0 || radiusB_um == 0);
-        return (noNaNs && noZeros);
+        boolean noZeros = !(channelA==0 || radiusA_um==0 || channelB==0 || radiusB_um==0 );
+        boolean channelOk = channelA>=1 && channelA<=imp.getNChannels() && channelB>=1 && channelB<=imp.getNChannels();
+        if (!channelOk) {
+            IJ.error("Error", "One or more invalid channel numbers: "+channelA+", "+channelB);
+        }
+        return (noNaNs && noZeros && channelOk);
     }
+
+
 }
