@@ -13,7 +13,6 @@ import org.scijava.plugin.Plugin;
  * Author: Noreen Walker, Scientific Computing Facility, MPI-CBG
  * Date: 2020-06
  */
-// ToDo add help button?
 
 
 /**
@@ -55,7 +54,7 @@ public class SpotColocalizerBatchPlugin implements Command {
     private double distanceFactorColoc = 1.0;
 
     // general
-    @Parameter(label = "Clear results tables")
+    @Parameter(label = "clear results tables")
     private boolean clearTable = false;
 
     // -- private fields --
@@ -80,8 +79,7 @@ public class SpotColocalizerBatchPlugin implements Command {
                     doSubixel, doMedian, clearTable);
         } else {
             IJ.error("Parameter error in Spot Colocalization",
-                    "Some parameters were not ok. Not running plugin.\n" +
-                            "See Log Window for current parameters.");
+                    "Some parameters were not ok. Not running plugin.");
         }
     }
 

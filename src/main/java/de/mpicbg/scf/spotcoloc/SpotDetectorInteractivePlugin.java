@@ -29,7 +29,7 @@ public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
     ImagePlus imp;
 
     // -- Dialog Parameters --
-    // channel A
+    // spot detection
     @Parameter(label = "---  Spot detection" , visibility = ItemVisibility.MESSAGE, persist = false, required=false)
     private String m1 = " ---";
 
@@ -49,7 +49,7 @@ public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
     @Parameter(label = "---  General", visibility = ItemVisibility.MESSAGE, persist = false, required=false)
     private String m4=" ---";
 
-    @Parameter(label="Clear results table")
+    @Parameter(label="clear results table")
     private boolean clearTable=false;
 
     // processing buttons
@@ -104,7 +104,7 @@ public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
 
         printParametersToLog();
 
-        // do spot detection + colocalization. displays results table
+        // do spot detection . displays results table
         if (checkParameters()) {
             spotProcessor.runFullSpotDetection(channel, radius_um, threshold, doSubixel,
                     doMedian, clearTable);

@@ -70,7 +70,7 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
     @Parameter(label = "---  General", visibility = ItemVisibility.MESSAGE, persist = false, required=false)
     private String m4=" ---";
 
-    @Parameter(label="Clear results tables")
+    @Parameter(label="clear results tables")
     private boolean clearTable=false;
 
     @Parameter(label="Include spots A in preview", persist = false)

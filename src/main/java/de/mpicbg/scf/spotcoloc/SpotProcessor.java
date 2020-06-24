@@ -54,7 +54,7 @@ public class SpotProcessor {
 
     /**
      *  Detects spots and visualizes them as overlay. Useful for previewing results in high level plugin.
-     *  Spot detection is done in a single channel, but image may be multichannel (TODO: check that this works)
+     *  Spot detection is done in a single channel, but image may be multichannel
      * @param channel number of channel A (1,2,3,..)
      * @param radius_um radius of spots in channel A (um)
      * @param threshold quality threshold in channel A
@@ -159,7 +159,7 @@ public class SpotProcessor {
 
 
     /** Detects spots, displays them as overlay and adds them to results table. Intented to be used by high level plugins.
-     * Detection is done in a single channel but the image may be multichannel. TODO: this it work?
+     * Detection is done in a single channel but the image may be multichannel.
      * This function is very similar to generateDetectionPreviewSingleChannel but adds the results table + roi overlay.
      * @param channel number of channel A (1,2,3,..)
      * @param radius_um radius of spots in channel A (um)
