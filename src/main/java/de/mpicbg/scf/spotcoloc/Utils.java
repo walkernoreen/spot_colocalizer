@@ -1,6 +1,9 @@
 package de.mpicbg.scf.spotcoloc;
 
-import fiji.plugin.trackmate.Spot;
+/*
+ * Author: Noreen Walker, Scientific Computing Facility, MPI-CBG
+ */
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Roi;
@@ -10,12 +13,17 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 
 import java.awt.*;
-import java.util.ArrayList;
 
 /**
- * Static utility functions
+ * Static utility functions and constants which didn't find a place elsewhere.
  */
 public class Utils {
+    /**
+     * Documentation webpage
+     */
+    public static final String pluginURL="https://github.com/walkernoreen/spot_colocalizer"; // TODO: update to imagej wiki?
+
+
     /**
      * Extracts a single channel of imp and returns it as imglib2 RandomAccessibleInterval img.
      *

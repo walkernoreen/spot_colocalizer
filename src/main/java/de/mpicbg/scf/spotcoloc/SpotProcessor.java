@@ -1,6 +1,11 @@
 
 package de.mpicbg.scf.spotcoloc;
 
+/*
+ * Author: Noreen Walker, Scientific Computing Facility, MPI-CBG
+ */
+
+
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.detection.LogDetector;
 import ij.IJ;
@@ -43,7 +48,7 @@ public class SpotProcessor {
 
     private void checkInput() {
         // single time point
-        if (imp.getNFrames()>1) {IJ.error("Spot Colocalizer", "Image must be a single time point.");}
+        if (imp.getNFrames()>1) {IJ.error("Spot Colocalizer", "Image must be a single time point. Plugin will not work correctly.");}
     }
 
 

@@ -1,5 +1,9 @@
 package de.mpicbg.scf.spotcoloc;
 
+/*
+ * Author: Noreen Walker, Scientific Computing Facility, MPI-CBG
+ */
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Roi;
@@ -10,16 +14,10 @@ import org.scijava.plugin.Plugin;
 
 
 
-/*
- * Author: Noreen Walker, Scientific Computing Facility, MPI-CBG
- * Date: 2020-06
- */
-
-
 /**
  * Batch processible + macro recordable version of SpotColocalizerInteractivePlugin
  */
-@Plugin(type = Command.class, menuPath = "Plugins>Spot Colocalization > SpotDetectBatch") // TODO nicer path
+@Plugin(type = Command.class, menuPath = "Plugins>Spot Colocalization > Macro Recordable > SpotDetector")
 public class SpotDetectorBatchPlugin implements Command {
 
     @Parameter

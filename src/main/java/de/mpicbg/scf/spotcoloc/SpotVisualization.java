@@ -1,5 +1,10 @@
 package de.mpicbg.scf.spotcoloc;
 
+/*
+ * Author: Noreen Walker, Scientific Computing Facility, MPI-CBG
+ */
+
+
 import fiji.plugin.trackmate.Spot;
 import ij.ImagePlus;
 import ij.gui.OvalRoi;

@@ -1,34 +1,34 @@
+/*
+ * Author: Noreen Walker, Scientific Computing Facility, MPI-CBG
+ */
+
 package de.mpicbg.scf.spotcoloc;
 
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Roi;
+import ij.macro.MacroRunner;
 import org.scijava.ItemVisibility;
 import org.scijava.command.InteractiveCommand;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
 
-
-
-/*
- * Author: Noreen Walker, Scientific Computing Facility, MPI-CBG
- * Date: 2020-06
- */
-// ToDo add help button?
-
 /**
  * Interactive spot detection in a single channel.
  * For macro recording use SpotDetectorBatchPlugin.
  */
-@Plugin(type = InteractiveCommand.class, initializer = "initialize_spotdetect", menuPath = "Plugins>Spot Colocalization > SpotDetect") // TODO nicer path
+@Plugin(type = InteractiveCommand.class, initializer = "initialize_spotdetect", menuPath = "Plugins>Spot Colocalization > SpotDetector Interactive")
 public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
 
     @Parameter
     ImagePlus imp;
 
     // -- Dialog Parameters --
+    @Parameter(label="Online Help", callback = "help_callback")
+    private Button helpButton;
+
     // spot detection
     @Parameter(label = "---  Spot detection" , visibility = ItemVisibility.MESSAGE, persist = false, required=false)
     private String m1 = " ---";
@@ -75,6 +75,16 @@ public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
         spotProcessor = new SpotProcessor(imp);
     }
 
+
+    /**
+     * Launches help webpage. Triggered by "online help" button
+     */
+    private void help_callback(){
+        // from here: https://github.com/imagej/ImageJA/blob/master/src/main/java/ij/gui/GenericDialog.java
+        String macro = "run('URL...', 'url=" + Utils.pluginURL+ "');";
+        new MacroRunner(macro);
+    }
+
     /**
      * Generates spots preview. Triggered by "preview" button.
      */
@@ -117,20 +127,17 @@ public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
 
 
 
-   /* @Override
+/*    @Override
     public void preview() {
         // Not implemented. Analysis is called via button callbacks
-        super.preview();
-    }*/
+    }
+*/
 
-
-   /* @Override
+/*    @Override
     public void run() {
         // Not implemented. Analysis is called via button callbacks
-        super.run();
     }
-    */
-
+*/
 
 
 

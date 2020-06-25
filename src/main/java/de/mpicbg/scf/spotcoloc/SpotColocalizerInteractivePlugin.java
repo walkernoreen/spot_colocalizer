@@ -1,9 +1,14 @@
 package de.mpicbg.scf.spotcoloc;
 
+/*
+ * Author: Noreen Walker, Scientific Computing Facility, MPI-CBG
+ */
+
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.*;
+import ij.macro.MacroRunner;
 import org.scijava.ItemVisibility;
 import org.scijava.command.InteractiveCommand;
 import org.scijava.plugin.Parameter;
@@ -12,24 +17,20 @@ import org.scijava.widget.Button;
 
 
 
-/*
- * Author: Noreen Walker, Scientific Computing Facility, MPI-CBG
- * Date: 2020-06
- */
-// ToDo add help button?
-// ToDo manual macro recording?
-
 /**
  * Interactive spot detection + colocalization analysis. requires at least 2 channels.
  * For macro recording use SpotColocalizerBatchPlugin.
  */
-@Plugin(type = InteractiveCommand.class, initializer = "initialize_spotcoloc", menuPath = "Plugins>Spot Colocalization > SpotColoc") // TODO nicer path
+@Plugin(type = InteractiveCommand.class, initializer = "initialize_spotcoloc", menuPath = "Plugins>Spot Colocalization > SpotColocalizer Interactive")
 public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
 
     @Parameter
     ImagePlus imp;
 
     // -- Dialog Parameters --
+    @Parameter(label="Online Help", callback = "help_callback")
+    private Button helpButton;
+
     // channel A
     @Parameter(label = "---  Channel A" , visibility = ItemVisibility.MESSAGE, persist = false, required=false)
     private String m1 = " (spots displayed magenta) ---";
@@ -93,6 +94,16 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
 
     // spot analyzer
     private SpotProcessor spotProcessor;
+
+
+    /**
+     * Launches help webpage. Triggered by "online help" button
+     */
+    private void help_callback(){
+        // from here: https://github.com/imagej/ImageJA/blob/master/src/main/java/ij/gui/GenericDialog.java
+        String macro = "run('URL...', 'url=" + Utils.pluginURL+ "');";
+        new MacroRunner(macro);
+    }
 
 
     /**
