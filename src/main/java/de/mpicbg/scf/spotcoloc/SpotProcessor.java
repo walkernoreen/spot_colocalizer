@@ -140,13 +140,13 @@ public class SpotProcessor {
 
         // create visualization overlay
         Overlay ov = SpotVisualization.createOverlayOfSpots(imp, CR.spotsA_noncoloc, Color.magenta);
-        ov= SpotVisualization.createOverlayOfSpots(imp, CR.spotsAvg_coloc, ov,Color.yellow);
+        ov= SpotVisualization.createOverlayOfSpots(imp, CR.spotsAvg_coloc, ov,Color.white);
         ov= SpotVisualization.createOverlayOfSpots(imp, CR.spotsB_noncoloc, ov,Color.green);
 
         // add roi to overlay
         Roi roi = imp.getRoi();
         if (roi!=null) {
-            roi.setStrokeColor(Color.white);
+            roi.setStrokeColor(Color.yellow);
             ov.add(roi);
         }
 
@@ -184,7 +184,7 @@ public class SpotProcessor {
         // add roi to overlay
         Roi roi = imp.getRoi();
         if (roi!=null) {
-            roi.setStrokeColor(Color.white);
+            roi.setStrokeColor(Color.yellow);
             ov.add(roi);
         }
 
