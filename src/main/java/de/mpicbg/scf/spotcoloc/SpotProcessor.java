@@ -6,8 +6,14 @@ package de.mpicbg.scf.spotcoloc;
  */
 
 
+import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.detection.LogDetector;
+import fiji.plugin.trackmate.SpotCollection;
+import fiji.plugin.trackmate.TrackMate;
+import fiji.plugin.trackmate.detection.DetectorKeys;
+import fiji.plugin.trackmate.detection.LogDetectorFactory;
+import fiji.plugin.trackmate.features.spot.SpotIntensityAnalyzerFactory;
+import fiji.plugin.trackmate.features.spot.SpotRadiusEstimatorFactory;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
@@ -16,11 +22,11 @@ import ij.gui.Roi;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
 import ij.text.TextWindow;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.numeric.RealType;
 
+
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 
 
@@ -134,6 +140,7 @@ public class SpotProcessor {
         List<Spot> spotsA = detectSpots(channelA, radiusA_um,thresholdA, doSubPixel, doMedian);
         List<Spot> spotsB = detectSpots(channelB,radiusB_um, thresholdB, doSubPixel, doMedian);
 
+
         // detect which spots are colocalized
         double maxdist_um = 0.5 * (radiusA_um + radiusB_um) * distanceFactorColoc;
         ColocResult CR = findSpotCorrespondences(spotsA, spotsB, maxdist_um);
@@ -216,20 +223,8 @@ public class SpotProcessor {
      */
     public <T extends RealType<T>> List<Spot> detectSpots(int channel, double radius_um, double threshold,
                                                           boolean doSubpixel, boolean doMedian) {
-        // initialize result
-        List<Spot> spots = new ArrayList<>();
-
-        // extract single channel for spot detection
-        RandomAccessibleInterval<T> img = Utils.extractSingleChannelImg(imp, channel);
-        if (img==null) { return new ArrayList<Spot>();} // channel didn't exist
-
-        // restrict channel to roi region (bounding box).
-        RandomAccessibleInterval<T> interval = Utils.restrictSingleChannelImgToRoiRect(img, imp);
-
-
-        // get image calibration
-        Calibration calib = imp.getCalibration();
-        double[] calibration = new double[] {calib.pixelWidth, calib.pixelHeight, calib.pixelDepth};
+        // return this if detection fails
+        final List<Spot> emptyspots=new ArrayList<>();
 
         // heuristic scaling of threshold to reference radius=1um
         if (imp.getNSlices()>1) {
@@ -239,38 +234,81 @@ public class SpotProcessor {
             threshold=threshold/(radius_um*radius_um);
         }
 
-
         // == Detect the spots ==
-        LogDetector detector = new LogDetector(img, interval, calibration, radius_um, threshold, doSubpixel, doMedian);
+        // adapted from: https://imagej.net/Scripting_TrackMate
+        //     and https://github.com/tferr/Scripts/blob/master/BAR/src/main/resources/scripts/BAR/Analysis/LoG-DoG_Spot_Counter.py
+        // previous code version used to call LogDetector directly but it's then hard to get additional spot features like intensity
 
+        Settings settings = new Settings();
+        settings.setFrom(imp);
+
+        // configure spot detector
+        settings.detectorFactory = new LogDetectorFactory<>();
+
+        Map<String, Object> map = new HashMap<>();
+        map.put(DetectorKeys.KEY_RADIUS, radius_um);
+        map.put(DetectorKeys.KEY_THRESHOLD, threshold);
+        map.put(DetectorKeys.KEY_DO_SUBPIXEL_LOCALIZATION, doSubpixel);
+        map.put(DetectorKeys.KEY_DO_MEDIAN_FILTERING, doMedian);
+        map.put(DetectorKeys.KEY_TARGET_CHANNEL, channel);
+
+        settings.detectorSettings = map;
+
+        // add analyzers
+        settings.addSpotAnalyzerFactory(new SpotIntensityAnalyzerFactory<>());
+        settings.addSpotAnalyzerFactory(new SpotRadiusEstimatorFactory<>());
+
+        // initialize trackmate
+        TrackMate trackmate = new TrackMate(settings);
+
+        //execute
         try {
-            if (detector.process()) {
-                // Get the list of detected spots
-                List<Spot> spotsraw = detector.getResult();
+            // first part of trackmate.process()
+            //https://github.com/fiji/TrackMate/blob/7eda4995900469bbec0516f1d32cdbd9f3d84fd4/src/main/java/fiji/plugin/trackmate/TrackMate.java#L610
+            if ( !trackmate.execDetection() ) { return emptyspots; } // could report the error messages to log ...
+            if ( !trackmate.execInitialSpotFiltering() ) { return emptyspots; }
+            if ( !trackmate.computeSpotFeatures( true ) ) { return emptyspots; }
 
-                // Filter spots by ROI
-                Roi roi = imp.getRoi();
-                if (roi == null) {
-                    spots = spotsraw;
-                } else {
-                    // check if spot pixel position within roi
-                    double[] position;
-                    for (Spot currentspot : spotsraw) {
-                        position = getPositionPx(currentspot, calib);
-                        if (roi.contains((int) position[0], (int) position[1])) {
-                            spots.add(currentspot);
-                        }
-                    }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            IJ.log("The spot detector could not process the data: Roi outside of image");
+            return emptyspots;
+        }
+
+
+        //extract results
+        SpotCollection spotCollection = trackmate.getModel().getSpots();
+
+        // avoid duplicates (spots at same position - why is this sometimes possible at all?)
+        //          (could also do more advanced filtering: if spots very close by (below specified dist, then keep the higher quality one)
+        // TODO: posted duplicate-spots issue on image.sc, follow updates: https://forum.image.sc/t/getting-duplicate-spots-with-trackmate-logdetector-scripting/39575
+        List<double[]> positions = new ArrayList<double[]>();
+
+        // collect spots
+        List<Spot> spots=new ArrayList<>();
+
+        for (final Spot spot : spotCollection.iterable(false)) {
+            double[] posSpot = getPositionCalib(spot);
+
+            // check for duplicated position
+            boolean duplicate = false;
+            for (double[] posTmp : positions) {
+                double dist2 = (posTmp[0] - posSpot[0]) * (posTmp[0] - posSpot[0]) + (posTmp[1] - posSpot[1]) * (posTmp[1] - posSpot[1]) +
+                        (posTmp[2] - posSpot[2]) * (posTmp[2] - posSpot[2]);
+                if (dist2 < 0.00000000000001) {
+                    duplicate = true;
                 }
-                IJ.log("Detected spots in channel "+channel+" (within Roi): "+spots.size() + ".");
+            }
 
+            // add spot to list
+            if (!duplicate) {
+                positions.add(posSpot);
+                spots.add(spot);
             } else {
-                IJ.log("The spot detector could not process the data.");
+                System.out.println("Skip duplicate: pos=" + Arrays.toString(getPositionCalib(spot)) + ", quality:" + spot.getFeature(Spot.QUALITY));
             }
         }
-        catch (ArrayIndexOutOfBoundsException e) {
-            IJ.log("The spot detector could not process the data: Roi outside of image");
-        }
+
+        IJ.log("Detected spots in channel " + channel + " (within Roi): " + spots.size() + ".");
 
         return spots;
     }
@@ -550,14 +588,17 @@ public class SpotProcessor {
 
             rt.incrementCounter();
             rt.addLabel(imp.getTitle());
-            rt.addValue("Channel", channel);
+            rt.addValue("channel", channel);
             rt.addValue("x(um)", positionCalib[0]);
             rt.addValue("y(um)", positionCalib[1]);
             rt.addValue("z(um)", positionCalib[2]);
-            rt.addValue("radius(um)", spot.getFeature(Spot.RADIUS));
+            rt.addValue("input_radius(um)", spot.getFeature(Spot.RADIUS));
+            rt.addValue("estimated_radius(um)",(spot.getFeature(SpotRadiusEstimatorFactory.ESTIMATED_DIAMETER)/2));
+            rt.addValue("mean_intensity (within input_radius)", spot.getFeature(SpotIntensityAnalyzerFactory.MEAN_INTENSITY));
             rt.addValue("x(pixel)", positionPx[0]);
             rt.addValue("y(pixel)", positionPx[1]);
             rt.addValue("z(pixel)", positionPx[2]);
+
         }
         return rt;
     }
@@ -565,7 +606,7 @@ public class SpotProcessor {
 
 
     /**
-     * Helper for fillDetailedResultsTable
+     * Helper for fillDetailedResultsTable //TODO: generliaze this to make it reuseable for both detailed tables. maybe also rename DetailedTable to SpotColoc table or so
      */
     private void appendDetailedResults (ResultsTable rt, List<Spot> spots, int channel, boolean isColocalized) {
         for (int i = 0; i < spots.size(); i++) {
@@ -575,15 +616,20 @@ public class SpotProcessor {
 
             rt.incrementCounter();
             rt.addLabel(imp.getTitle());
-            rt.addValue("Channel", channel);
+            rt.addValue("channel", channel);
             rt.addValue("x(um)", positionCalib[0]);
             rt.addValue("y(um)", positionCalib[1]);
             rt.addValue("z(um)", positionCalib[2]);
-            rt.addValue("radius(um)", spot.getFeature(Spot.RADIUS));
+            rt.addValue("input_radius(um)", spot.getFeature(Spot.RADIUS));
+            rt.addValue("estimated_radius(um)",(spot.getFeature(SpotRadiusEstimatorFactory.ESTIMATED_DIAMETER)/2));
+            rt.addValue("mean_intensity (within input_radius)", spot.getFeature(SpotIntensityAnalyzerFactory.MEAN_INTENSITY));
             rt.addValue("x(pixel)", positionPx[0]);
             rt.addValue("y(pixel)", positionPx[1]);
             rt.addValue("z(pixel)", positionPx[2]);
-            rt.addValue("isColocalized", String.valueOf(isColocalized));
+            rt.addValue("x(pixel)", positionPx[0]);
+            rt.addValue("y(pixel)", positionPx[1]);
+            rt.addValue("z(pixel)", positionPx[2]);
+            rt.addValue("is_colocalized", String.valueOf(isColocalized));
         }
     }
 

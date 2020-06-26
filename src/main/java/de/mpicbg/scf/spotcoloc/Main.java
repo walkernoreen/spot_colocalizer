@@ -30,7 +30,7 @@ public class Main {
 
         // load and show image
 
-//        File inputFile=new File("src/main/resources/spots_singlechannel_stack.tif");
+        //File inputFile=new File("duplicate_issue/stack_multichannel_duplicate_spot.tif");
         File inputFile=new File("src/main/resources/spots_multichannel_stack.tif");
 
       ImagePlus imp= IJ.openImage(inputFile.getPath());
@@ -43,7 +43,7 @@ public class Main {
        imp.show();
 
        // invoke the plugin (IJ2 style)
-        ij.command().run(SpotColocalizerInteractivePlugin.class, true);
+        ij.command().run(SpotDetectorInteractivePlugin.class, true);
 
         // automatize input for all @Parameters
       /*  Map<String, Object> map = new HashMap<>();

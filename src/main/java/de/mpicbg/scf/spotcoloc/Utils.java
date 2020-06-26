@@ -31,6 +31,7 @@ public class Utils {
      * @param channelnr channel number. counter starts at 1. If the input has single channel, channelnr is ignored.
      * @return img: single channel img. or null if input was multichannel and the channelnr does not exist
      */
+    @Deprecated // became obsolete after switching to TrackMate instance instead of LogDetector
     public static <T extends RealType<T>> RandomAccessibleInterval<T> extractSingleChannelImg(ImagePlus imp, int channelnr) {
 
         // CAREFUL: Dimension handling in imglib2:
@@ -66,6 +67,7 @@ public class Utils {
      * @param imp 2D or 3D, single or multi-channel. single time point (multi-timepoint not tested!).
      * @return interval: img cropped to the roi bounding rect, or not modified if no roi exists.
      */
+    @Deprecated // became obsolete after switching to TrackMate instance instead of LogDetector
     public static <T extends RealType<T>> RandomAccessibleInterval<T> restrictSingleChannelImgToRoiRect(RandomAccessibleInterval<T> img, ImagePlus imp) {
         RandomAccessibleInterval<T> interval = img;
 

@@ -56,7 +56,7 @@ public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
     @Parameter(label = "Generate Preview", callback="generatePreview_callback" )
     private Button previewButton;
 
-    @Parameter(label = "Full Spot Dectection", callback="fullAnalysis_callback" )
+    @Parameter(label = "Full Spot Detection", callback="fullAnalysis_callback" )
     private Button analysisButton;
 
     // -- private fields --
