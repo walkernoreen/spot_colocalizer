@@ -160,10 +160,10 @@ public class SpotProcessor {
         imp.setOverlay(ov);
 
         //display spots & summary in results tables
-        ResultsTable rtdetailed=fillDetailedTable(channelA,channelB,CR,clearTable);
+        ResultsTable rtdetailed= fillSpotsColocTable(channelA,channelB,CR,clearTable);
         rtdetailed.show(titleDetailedTable);
 
-        ResultsTable rtsummary = fillSummaryTable(channelA, channelB, CR, clearTable);
+        ResultsTable rtsummary = fillSummaryColocTable(channelA, channelB, CR, clearTable);
         rtsummary.show(titleSummaryTable);
     }
 
@@ -198,7 +198,7 @@ public class SpotProcessor {
         imp.setOverlay(ov);
 
         //display spots in results table
-        ResultsTable rtspots=fillSpotsTable(channel,spotsA,clearTable);
+        ResultsTable rtspots= fillSpotsDetectionTable(channel,spotsA,clearTable);
         rtspots.show(titleSpotsTable);
     }
 
@@ -467,7 +467,7 @@ public class SpotProcessor {
      * @param CR: colocalization result obtained from findSpotCorrespondences(...)
      * @return summary results table
      * */
-    private ResultsTable fillSummaryTable(int channelA, int channelB, ColocResult CR , boolean clearTable) {
+    private ResultsTable fillSummaryColocTable(int channelA, int channelB, ColocResult CR , boolean clearTable) {
 
         // add counts to results table
         TextWindow window = (TextWindow) WindowManager.getWindow(titleSummaryTable);
@@ -527,7 +527,7 @@ public class SpotProcessor {
      * @param clearTable if True, table is emptied before new valueS are added
      * @return detailed results table
      */
-    private ResultsTable fillDetailedTable(int channelA, int channelB, ColocResult CR, boolean clearTable) {
+    private ResultsTable fillSpotsColocTable(int channelA, int channelB, ColocResult CR, boolean clearTable) {
 
         // add counts to results table
         TextWindow window = (TextWindow) WindowManager.getWindow(titleDetailedTable);
@@ -545,10 +545,10 @@ public class SpotProcessor {
         rt.setPrecision(4);
         rt.showRowNumbers(true);
 
-        appendDetailedResults(rt,CR.spotsA_coloc,channelA,true);
-        appendDetailedResults(rt,CR.spotsA_noncoloc,channelA,false);
-        appendDetailedResults(rt,CR.spotsB_coloc,channelB,true);
-        appendDetailedResults(rt,CR.spotsB_noncoloc,channelB,false);
+        appendSpotsToTable(rt,CR.spotsA_coloc,channelA,true,true);
+        appendSpotsToTable(rt,CR.spotsA_noncoloc,channelA,true,false);
+        appendSpotsToTable(rt,CR.spotsB_coloc,channelB,true,true);
+        appendSpotsToTable(rt,CR.spotsB_noncoloc,channelB,true,false);
 
         return rt;
     }
@@ -563,7 +563,7 @@ public class SpotProcessor {
      * @param clearTable if True, table is emptied before new valueS are added
      * @return detailed results table
      */
-    private ResultsTable fillSpotsTable(int channel, List<Spot> spots, boolean clearTable) {
+    private ResultsTable fillSpotsDetectionTable(int channel, List<Spot> spots, boolean clearTable) {
 
         // add counts to results table
         TextWindow window = (TextWindow) WindowManager.getWindow(titleSpotsTable);
@@ -581,36 +581,22 @@ public class SpotProcessor {
         rt.setPrecision(4);
         rt.showRowNumbers(true);
 
-        for (int i = 0; i < spots.size(); i++) {
-            Spot spot = spots.get(i);
-            double[] positionCalib = getPositionCalib(spot);
-            double[] positionPx = getPositionPx(spot, imp.getCalibration());
+        appendSpotsToTable(rt,spots,channel,false,false);
 
-            rt.incrementCounter();
-            rt.addLabel(imp.getTitle());
-            rt.addValue("channel", channel);
-            rt.addValue("x(um)", positionCalib[0]);
-            rt.addValue("y(um)", positionCalib[1]);
-            rt.addValue("z(um)", positionCalib[2]);
-            rt.addValue("input_radius(um)", spot.getFeature(Spot.RADIUS));
-            rt.addValue("estimated_radius(um)",(spot.getFeature(SpotRadiusEstimatorFactory.ESTIMATED_DIAMETER)/2));
-            rt.addValue("mean_intensity (within input_radius)", spot.getFeature(SpotIntensityAnalyzerFactory.MEAN_INTENSITY));
-            rt.addValue("x(pixel)", positionPx[0]);
-            rt.addValue("y(pixel)", positionPx[1]);
-            rt.addValue("z(pixel)", positionPx[2]);
-
-        }
         return rt;
     }
 
 
 
+
     /**
-     * Helper for fillDetailedResultsTable //TODO: generliaze this to make it reuseable for both detailed tables. maybe also rename DetailedTable to SpotColoc table or so
+     * Helper for filling results tables
+     * addColocInfo: if True, isColocalized (true/false) is added as column, otherwise it's ignored
      */
-    private void appendDetailedResults (ResultsTable rt, List<Spot> spots, int channel, boolean isColocalized) {
+    private void appendSpotsToTable (ResultsTable rt, List<Spot> spots, int channel, boolean addColocInfo, boolean isColocalized) {
         for (int i = 0; i < spots.size(); i++) {
             Spot spot = spots.get(i);
+
             double[] positionCalib = getPositionCalib(spot);
             double[] positionPx = getPositionPx(spot, imp.getCalibration());
 
@@ -621,7 +607,7 @@ public class SpotProcessor {
             rt.addValue("y(um)", positionCalib[1]);
             rt.addValue("z(um)", positionCalib[2]);
             rt.addValue("input_radius(um)", spot.getFeature(Spot.RADIUS));
-            rt.addValue("estimated_radius(um)",(spot.getFeature(SpotRadiusEstimatorFactory.ESTIMATED_DIAMETER)/2));
+            rt.addValue("estimated_radius(um)", (spot.getFeature(SpotRadiusEstimatorFactory.ESTIMATED_DIAMETER) / 2));
             rt.addValue("mean_intensity (within input_radius)", spot.getFeature(SpotIntensityAnalyzerFactory.MEAN_INTENSITY));
             rt.addValue("x(pixel)", positionPx[0]);
             rt.addValue("y(pixel)", positionPx[1]);
@@ -629,9 +615,12 @@ public class SpotProcessor {
             rt.addValue("x(pixel)", positionPx[0]);
             rt.addValue("y(pixel)", positionPx[1]);
             rt.addValue("z(pixel)", positionPx[2]);
-            rt.addValue("is_colocalized", String.valueOf(isColocalized));
+            if (addColocInfo) {
+                rt.addValue("is_colocalized", String.valueOf(isColocalized));
+            }
         }
     }
+
 
 
     /**
