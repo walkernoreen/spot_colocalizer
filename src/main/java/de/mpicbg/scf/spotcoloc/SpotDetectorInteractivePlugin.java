@@ -119,9 +119,7 @@ public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
             spotProcessor.runFullSpotDetection(channel, radius_um, threshold, doSubixel,
                     doMedian, clearTable);
         } else {
-            IJ.error("Parameter error in Spot Detector",
-                    "Some parameters were not ok. Not running plugin.\n" +
-                            "See Log Window for current parameters.");
+            IJ.log("Issue with provided parameters. Not running plugin.");
         }
     }
 

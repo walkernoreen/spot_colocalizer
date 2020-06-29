@@ -61,8 +61,7 @@ public class SpotDetectorBatchPlugin implements Command {
             spotProcessor.runFullSpotDetection(channel, radius_um, threshold, doSubixel,
                     doMedian, clearTable);
         } else {
-            IJ.error("Parameter error in Spot Detector",
-                    "Some parameters were not ok. Not running plugin.");
+            IJ.log("Issue with provided parameters. Not running plugin.");
         }
     }
 

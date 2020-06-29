@@ -162,9 +162,7 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
                     channelB, radiusB_um, thresholdB, distanceFactorColoc,
                     doSubixel, doMedian, clearTable);
         } else {
-            IJ.error("Parameter error in Spot Colocalization",
-                    "Some parameters were not ok. Not running plugin.\n" +
-                            "See Log Window for current parameters.");
+            IJ.log("Issue with provided parameters. Not running plugin.");
         }
     }
 

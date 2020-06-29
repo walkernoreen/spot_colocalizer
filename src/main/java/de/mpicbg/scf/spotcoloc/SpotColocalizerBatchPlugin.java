@@ -16,7 +16,7 @@ import org.scijava.plugin.Plugin;
 /**
  * Batch processible + macro recordable version of SpotColocalizerInteractivePlugin
  */
-@Plugin(type = Command.class, menuPath = "Plugins>Spot Colocalization > Macro Recordable > SpotColocalizer")
+@Plugin(type = Command.class, initializer = "initialize_inputChecks", menuPath = "Plugins>Spot Colocalization > Macro Recordable > SpotColocalizer")
 public class SpotColocalizerBatchPlugin implements Command {
 
     @Parameter
@@ -64,8 +64,20 @@ public class SpotColocalizerBatchPlugin implements Command {
     private SpotProcessor spotProcessor;
 
 
+
+    private void initialize_inputChecks() {
+        if (imp.getNChannels() == 1) {
+            IJ.error("Spot Colocalizer", "Image must have at least 2 channels.");
+        }
+    }
+
+
     @Override
     public void run() {
+        if (imp.getNChannels()==1){
+            IJ.log("Image has only one channel. Returning.");
+        }
+
         spotProcessor = new SpotProcessor(imp);
         currentRoi = imp.getRoi();
         imp.setOverlay(null);
@@ -76,8 +88,7 @@ public class SpotColocalizerBatchPlugin implements Command {
                     channelB, radiusB_um, thresholdB, distanceFactorColoc,
                     doSubixel, doMedian, clearTable);
         } else {
-            IJ.error("Parameter error in Spot Colocalization",
-                    "Some parameters were not ok. Not running plugin.");
+            IJ.log("Issue with provided parameters. Not running plugin.");
         }
     }
 
