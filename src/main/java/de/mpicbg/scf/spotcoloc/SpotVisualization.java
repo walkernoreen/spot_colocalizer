@@ -38,6 +38,7 @@ public class SpotVisualization {
         // get image properties
         Calibration calib = imp.getCalibration();
         int nChannels = imp.getNChannels();
+        boolean isHyperstack=imp.isHyperStack();
 
         // if no spots exist, we're already done
         if (spots.size() == 0) return ov;
@@ -56,7 +57,7 @@ public class SpotVisualization {
 
             // draw circle into central slice
             int slice_ctr = (int) round(pos[2] + 1); // slice=z+1
-            ov = singleCircleToOverlay(ov, pos[0], pos[1], slice_ctr, rad0xy, nChannels, color, strokewidth, xoffset, yoffset);
+            ov = singleCircleToOverlay(ov, pos[0], pos[1], slice_ctr, rad0xy, nChannels, isHyperstack, color, strokewidth, xoffset, yoffset);
 
             // draw circles into slices above and below
             for (int deltaz = 1; deltaz < rad0z + 2; deltaz++) { //step through slices (circle extends to maximally slice_ctr+-rad0x +=rounding error)
@@ -74,10 +75,10 @@ public class SpotVisualization {
 
                 // draw circle rois
                 if (slice_ctr - deltaz > 0) {
-                    ov = singleCircleToOverlay(ov, pos[0], pos[1], slice_ctr - deltaz, radxy, nChannels, color, strokewidth, xoffset, yoffset);
+                    ov = singleCircleToOverlay(ov, pos[0], pos[1], slice_ctr - deltaz, radxy, nChannels, isHyperstack, color, strokewidth, xoffset, yoffset);
                 }
                 if (slice_ctr + deltaz < imp.getNSlices() + 1) {
-                    ov = singleCircleToOverlay(ov, pos[0], pos[1], slice_ctr + deltaz, radxy, nChannels, color, strokewidth, xoffset, yoffset);
+                    ov = singleCircleToOverlay(ov, pos[0], pos[1], slice_ctr + deltaz, radxy, nChannels, isHyperstack, color, strokewidth, xoffset, yoffset);
                 }
             }
         }
@@ -126,6 +127,7 @@ public class SpotVisualization {
      * @param yctr in px
      * @param slice one-based
      * @param radius in px
+     * @param isHyperstack: true for multichannel, false for single channel (and one timepoint)
      * @param color
      * @param strokewidth
      * @param xoffset shift-correction in x during plotting. xctr -> xtr+xoffset
@@ -133,13 +135,17 @@ public class SpotVisualization {
      * @return overlay with added circle
      */
     private static Overlay singleCircleToOverlay(Overlay ov, double xctr, double yctr, int slice, double radius,
-                                     int nChannels, Color color, double strokewidth, double xoffset,double yoffset) {
+                                     int nChannels, boolean isHyperstack, Color color, double strokewidth, double xoffset,double yoffset) {
         for (int channel = 1; channel < nChannels+1; channel++) {
             double xleft = xctr + xoffset - radius;
             double ytop = yctr + yoffset - radius;
 
             OvalRoi spotroi = new OvalRoi(xleft, ytop, 2 * radius, 2 * radius);
-            spotroi.setPosition(channel, slice, 1);
+            if (isHyperstack) {
+                spotroi.setPosition(channel, slice, 1);
+            } else {
+                spotroi.setPosition(slice);
+            }
             spotroi.setStrokeColor(color);
             spotroi.setStrokeWidth(strokewidth);
             ov.add(spotroi);
@@ -148,11 +154,11 @@ public class SpotVisualization {
     }
 
     /**
-     * Like singleCircleToOverlay(Overlay, double, double, int, double, int, Color, double, double, double)
+     * Like singleCircleToOverlay(Overlay, double, double, int, double, int, boolean, Color, double, double, double)
      * but with default parameters
      */
     private static Overlay singleCircleToOverlay(Overlay ov, double xctr, double yctr, int slice, double radius,
-                                                 int nChannels, Color color) {
-        return singleCircleToOverlay(ov,xctr,yctr, slice,radius,nChannels,color, 0,0,0 );
+                                                 int nChannels, boolean isHyperstack, Color color) {
+        return singleCircleToOverlay(ov,xctr,yctr, slice,radius,nChannels,isHyperstack, color, 0,0,0 );
     }
 }
