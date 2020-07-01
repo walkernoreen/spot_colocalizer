@@ -55,6 +55,10 @@ public class SpotColocalizerBatchPlugin implements Command {
     @Parameter(label = "clear results tables")
     private boolean clearTable = false;
 
+    @Parameter(label="add spots to Roi Manager")
+    private boolean addToRoiManager=false;
+
+
     // -- private fields --
     final private boolean doSubixel = true;
 
@@ -86,7 +90,7 @@ public class SpotColocalizerBatchPlugin implements Command {
         if (checkParameters()) {
             spotProcessor.runFullColocalizationAnalysis(channelA, radiusA_um, thresholdA,
                     channelB, radiusB_um, thresholdB, distanceFactorColoc,
-                    doSubixel, doMedian, clearTable);
+                    doSubixel, doMedian, clearTable, addToRoiManager);
         } else {
             IJ.log("Issue with provided parameters. Not running plugin.");
         }

@@ -74,11 +74,16 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
     @Parameter(label="clear results tables")
     private boolean clearTable=false;
 
+    @Parameter(label="add spots to Roi Manager")
+    private boolean addToRoiManager=false;
+
     @Parameter(label="Include spots A in preview", persist = false)
     private boolean previewA=true;
 
     @Parameter(label="Include spots B in preview", persist = false)
     private boolean previewB=true;
+
+
 
     // processing buttons
     @Parameter(label = "Generate Preview", callback="generatePreview_callback" )
@@ -160,7 +165,7 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
         if (checkParameters()) {
             spotProcessor.runFullColocalizationAnalysis(channelA, radiusA_um, thresholdA,
                     channelB, radiusB_um, thresholdB, distanceFactorColoc,
-                    doSubixel, doMedian, clearTable);
+                    doSubixel, doMedian, clearTable, addToRoiManager);
         } else {
             IJ.log("Issue with provided parameters. Not running plugin.");
         }
@@ -214,7 +219,7 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
         System.out.println("Channel A: channelA=" + channelA + ", radiusA_um=" + radiusA_um + ", thresholdA=" + thresholdA);
         System.out.println("Channel B: channelB=" + channelB + ", radiusB_um=" + radiusB_um + ", thresholdB=" + thresholdB);
         System.out.println("Both channels: medianFilter=" + doMedian + ", distanceFactorColoc=" + distanceFactorColoc);
-        System.out.println("General: clearTable=" + clearTable + ", previewA=" + previewA + ", previewB=" + previewB + "\n");
+        System.out.println("General: clearTable=" + clearTable  +", addToRoiManager=" + addToRoiManager+", previewA=" + previewA + ", previewB=" + previewB + "\n");
     }
 
     /**
@@ -225,7 +230,7 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
         IJ.log("Channel A: channelA="+channelA+", radiusA_um="+radiusA_um+", thresholdA="+thresholdA);
         IJ.log("Channel B: channelB="+channelB+", radiusB_um="+radiusB_um+", thresholdB="+thresholdB);
         IJ.log("Both channels: medianFilter="+doMedian+", distanceFactorColoc="+distanceFactorColoc);
-        IJ.log("General: clearTable="+clearTable+", previewA="+previewA+", previewB="+previewB+"\n");
+        IJ.log("General: clearTable="+clearTable+", addToRoiManager=" + addToRoiManager+", previewA="+previewA+", previewB="+previewB+"\n");
     }
 
 

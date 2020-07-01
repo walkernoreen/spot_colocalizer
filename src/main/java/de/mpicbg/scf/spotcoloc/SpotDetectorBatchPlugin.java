@@ -39,7 +39,11 @@ public class SpotDetectorBatchPlugin implements Command {
 
     // general
     @Parameter(label = "clear results table")
-    private boolean clearTable = false;// channel A
+    private boolean clearTable = false;
+
+    @Parameter(label="add spots to Roi Manager")
+    private boolean addToRoiManager=false;
+
 
     // -- private fields --
     final private boolean doSubixel = true;
@@ -59,7 +63,7 @@ public class SpotDetectorBatchPlugin implements Command {
         // do spot detection . displays results table
         if (checkParameters()) {
             spotProcessor.runFullSpotDetection(channel, radius_um, threshold, doSubixel,
-                    doMedian, clearTable);
+                    doMedian, clearTable, addToRoiManager);
         } else {
             IJ.log("Issue with provided parameters. Not running plugin.");
         }

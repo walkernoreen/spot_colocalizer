@@ -70,7 +70,7 @@
 		<system>none</system>
 	</ciManagement>
 
-	<properties> <!--TODO this whole section-->
+	<properties>
 		<package-name>de.mpicbg.scf.spotcoloc</package-name>
 		<main-class>de.mpicbg.scf.spotcoloc.SpotColocalizerInteractivePlugin</main-class>
 		<license.licenseName>bsd_3</license.licenseName>
@@ -116,23 +116,5 @@
             <groupId>sc.fiji</groupId>
             <artifactId>TrackMate_</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>16.0.2</version>
-            <scope>compile</scope>
-        </dependency>
-        <!--        <dependency>
-                    <groupId>net.imagej</groupId>
-                    <artifactId>ij</artifactId>
-                </dependency> -->
-
-        <!-- morpholibj -->
-<!--        <dependency>
-            <groupId>fr.inra.ijpb</groupId>
-            <artifactId>MorphoLibJ_</artifactId>
-            <version>1.4.0</version>
-        </dependency>-->
-
 	</dependencies>
 </project>

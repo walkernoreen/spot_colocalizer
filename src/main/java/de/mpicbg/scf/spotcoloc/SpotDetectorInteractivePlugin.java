@@ -52,6 +52,10 @@ public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
     @Parameter(label="clear results table")
     private boolean clearTable=false;
 
+    @Parameter(label="add spots to Roi Manager")
+    private boolean addToRoiManager=false;
+
+
     // processing buttons
     @Parameter(label = "Generate Preview", callback="generatePreview_callback" )
     private Button previewButton;
@@ -117,7 +121,7 @@ public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
         // do spot detection . displays results table
         if (checkParameters()) {
             spotProcessor.runFullSpotDetection(channel, radius_um, threshold, doSubixel,
-                    doMedian, clearTable);
+                    doMedian, clearTable, addToRoiManager);
         } else {
             IJ.log("Issue with provided parameters. Not running plugin.");
         }
@@ -161,7 +165,7 @@ public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
     public final void printParameters() {
         System.out.println("\nParameters:");
         System.out.println("channelnumber=" + channel + ", radius_um=" + radius_um + ", threshold=" + threshold +
-                ", medianFilter=" + doMedian+", clearTable=" + clearTable +"\n");
+                ", medianFilter=" + doMedian+", clearTable=" + clearTable +", addToRoiManager=" + addToRoiManager+"\n");
     }
 
     /**
@@ -170,7 +174,7 @@ public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
     public final void printParametersToLog() {
         IJ.log("\nParameters:");
         IJ.log("channelnumber=" + channel + ", radius_um=" + radius_um + ", threshold=" + threshold +
-                ", medianFilter=" + doMedian+", clearTable=" + clearTable +"\n");
+                ", medianFilter=" + doMedian+", clearTable=" + clearTable +", addToRoiManager=" + addToRoiManager+"\n");
     }
 
 

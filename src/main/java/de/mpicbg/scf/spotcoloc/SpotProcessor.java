@@ -18,9 +18,11 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
 import ij.gui.Overlay;
+import ij.gui.PointRoi;
 import ij.gui.Roi;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
+import ij.plugin.frame.RoiManager;
 import ij.text.TextWindow;
 import net.imglib2.type.numeric.RealType;
 
@@ -28,6 +30,8 @@ import net.imglib2.type.numeric.RealType;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+
+import static java.lang.Math.round;
 
 
 /**
@@ -130,11 +134,12 @@ public class SpotProcessor {
      * @param doSubPixel LogDetector input
      * @param doMedian LogDetector input
      * @param clearTable clear results tables before adding results
+     * @param addToRoiManager add spots as multi point roi to the roi manager
      */
     public void runFullColocalizationAnalysis(int channelA, double radiusA_um, double thresholdA,
                                               int channelB, double radiusB_um, double thresholdB,
                                               double distanceFactorColoc, boolean doSubPixel, boolean doMedian,
-                                              boolean clearTable) {
+                                              boolean clearTable, boolean addToRoiManager) {
 
         // find spots
         List<Spot> spotsA = detectSpots(channelA, radiusA_um,thresholdA, doSubPixel, doMedian);
@@ -165,6 +170,14 @@ public class SpotProcessor {
 
         ResultsTable rtsummary = fillSummaryColocTable(channelA, channelB, CR, clearTable);
         rtsummary.show(titleSummaryTable);
+
+        // add to roi manager
+        if (addToRoiManager) {
+            addSpotsToRoiManager(CR.spotsA_coloc,"spots_coloc_ch"+channelA, channelA);
+            addSpotsToRoiManager(CR.spotsA_noncoloc,"spots_notcoloc_ch"+channelA, channelA);
+            addSpotsToRoiManager(CR.spotsB_coloc,"spots_coloc_ch"+channelB, channelB);
+            addSpotsToRoiManager(CR.spotsB_noncoloc,"spots_notcoloc_ch"+channelB, channelB);
+        }
     }
 
 
@@ -179,14 +192,15 @@ public class SpotProcessor {
      * @param doSubPixel LogDetector input
      * @param doMedian LogDetector input
      * @param clearTable clear results table before adding results
+     * @param addToRoiManager add spots as multi point roi to the roi manager
      */
     public void runFullSpotDetection(int channel, double radius_um, double threshold,
-                                     boolean doSubPixel, boolean doMedian, boolean clearTable) {
+                                     boolean doSubPixel, boolean doMedian, boolean clearTable, boolean addToRoiManager) {
         // find spots
-        List<Spot> spotsA = detectSpots(channel, radius_um,threshold, doSubPixel, doMedian);
+        List<Spot> spots = detectSpots(channel, radius_um,threshold, doSubPixel, doMedian);
 
         // create visualization overlay
-        Overlay ov = SpotVisualization.createOverlayOfSpots(imp, spotsA, Color.magenta);
+        Overlay ov = SpotVisualization.createOverlayOfSpots(imp, spots, Color.magenta);
 
         // add roi to overlay
         Roi roi = imp.getRoi();
@@ -198,8 +212,13 @@ public class SpotProcessor {
         imp.setOverlay(ov);
 
         //display spots in results table
-        ResultsTable rtspots= fillSpotsDetectionTable(channel,spotsA,clearTable);
+        ResultsTable rtspots= fillSpotsDetectionTable(channel,spots,clearTable);
         rtspots.show(titleSpotsTable);
+
+        // add to roi manager
+        if (addToRoiManager) {
+            addSpotsToRoiManager(spots,"spots", channel);
+        }
     }
 
 
@@ -643,6 +662,32 @@ public class SpotProcessor {
             this.spotsB_coloc = spotsB_coloc;
             this.spotsAvg_coloc = spotsAvg_coloc;
         }
+    }
+
+
+    /**
+     * Adds the spots as multi point roi to the roi manager. All spots are added to channel 1. (but varying x,y,slice)
+     * @param spots
+     * @param spotsName name
+     * @param channel channel to which the spot belongs
+     */
+    private void addSpotsToRoiManager(List<Spot> spots, String spotsName, int channel) {
+        PointRoi points = new PointRoi();
+
+        for (int i = 0; i < spots.size(); i++) {
+            Spot spot = spots.get(i);
+
+            double[] positionPx = getPositionPx(spot, imp.getCalibration());
+            int slice = (int) round(positionPx[2] + 1);
+
+            imp.setPositionWithoutUpdate(channel, slice, 1);
+
+            points.addPoint(imp, positionPx[0], positionPx[1]);
+            points.setName(spotsName);
+        }
+
+        RoiManager rm = RoiManager.getRoiManager();
+        rm.addRoi(points);
     }
 
 
