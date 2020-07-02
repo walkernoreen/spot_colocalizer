@@ -672,6 +672,10 @@ public class SpotProcessor {
      * @param channel channel to which the spot belongs
      */
     private void addSpotsToRoiManager(List<Spot> spots, String spotsName, int channel) {
+        int oldC = imp.getC();
+        int oldZ=imp.getZ();
+        int oldT=imp.getT();
+
         PointRoi points = new PointRoi();
 
         for (int i = 0; i < spots.size(); i++) {
@@ -688,6 +692,8 @@ public class SpotProcessor {
 
         RoiManager rm = RoiManager.getRoiManager();
         rm.addRoi(points);
+
+        imp.setPosition(oldC,oldZ,oldT);
     }
 
 

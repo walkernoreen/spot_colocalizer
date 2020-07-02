@@ -25,7 +25,7 @@ public class SpotColocalizerBatchPlugin implements Command {
     // -- Dialog Parameters --
     // removed message items, see: https://forum.image.sc/t/imagej2-command-macro/29650/3
     // channel A
-    @Parameter(label = "channel A: channel number")
+    @Parameter(label = "channel A: channel number", description="overlay in magenta")
     private int channelA = 2;
 
     @Parameter(label = "channel A: radius (um)")
@@ -35,7 +35,7 @@ public class SpotColocalizerBatchPlugin implements Command {
     private double thresholdA = 100.0;
 
     //channel B
-    @Parameter(label = "channel B: channel number")
+    @Parameter(label = "channel B: channel number",description="overlay in green")
     private int channelB = 3;
 
     @Parameter(label = "channel B: radius (um)")
@@ -70,18 +70,23 @@ public class SpotColocalizerBatchPlugin implements Command {
 
 
     private void initialize_inputChecks() {
-        if (imp.getNChannels() == 1) {
-            IJ.error("Spot Colocalizer", "Image must have at least 2 channels.");
+        if (imp!=null) { // imp==null triggers plugin exit
+            if (imp.getNChannels() == 1) {
+                IJ.error("Spot Colocalizer", "Image must have at least 2 channels.");
+            }
         }
     }
 
 
     @Override
     public void run() {
+        // cannot avoid dialog in this case, but then don't execute the processing
         if (imp.getNChannels()==1){
             IJ.log("Image has only one channel. Returning.");
+            return;
         }
 
+        // initialization
         spotProcessor = new SpotProcessor(imp);
         currentRoi = imp.getRoi();
         imp.setOverlay(null);

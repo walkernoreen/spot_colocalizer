@@ -76,7 +76,9 @@ public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
      * Initializes plugin. Does sanity checks within the SpotProcessor initializer
      */
     private void initialize_spotdetect(){
-        spotProcessor = new SpotProcessor(imp);
+        if (imp!=null) { // imp==null triggers plugin exit
+            spotProcessor = new SpotProcessor(imp);
+        }
     }
 
 

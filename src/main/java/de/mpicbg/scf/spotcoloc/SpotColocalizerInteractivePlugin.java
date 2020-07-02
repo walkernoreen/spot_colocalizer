@@ -115,11 +115,16 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
      * Initializes plugin. Does some sanity checks. More checks done in SpotProcessor initializer
      */
     private void initialize_spotcoloc(){
-        // sanity checks
-        if (imp.getNChannels()==1) {IJ.error("Spot Colocalizer", "Image must have at least 2 channels.");}
+        if (imp!=null) { // imp==null triggers plugin exit
+            // sanity checks
+            if (imp.getNChannels() == 1) {
+                IJ.error("Spot Colocalizer", "Image must have at least 2 channels.");
+            }
 
-        spotProcessor = new SpotProcessor(imp);
+            spotProcessor = new SpotProcessor(imp);
+        }
     }
+
 
     /**
      * Generates spots preview. Triggered by "preview" button.
