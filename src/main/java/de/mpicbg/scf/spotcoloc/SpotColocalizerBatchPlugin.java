@@ -60,9 +60,8 @@ public class SpotColocalizerBatchPlugin implements Command {
 
 
     // -- private fields --
-    final private boolean doSubixel = true;
+    final private boolean doSubpixel = true;
 
-    Roi currentRoi;
 
     // spot analyzer
     private SpotProcessor spotProcessor;
@@ -88,14 +87,13 @@ public class SpotColocalizerBatchPlugin implements Command {
 
         // initialization
         spotProcessor = new SpotProcessor(imp);
-        currentRoi = imp.getRoi();
         imp.setOverlay(null);
 
         // do spot detection + colocalization. displays results table
         if (checkParameters()) {
             spotProcessor.runFullColocalizationAnalysis(channelA, radiusA_um, thresholdA,
                     channelB, radiusB_um, thresholdB, distanceFactorColoc,
-                    doSubixel, doMedian, clearTable, addToRoiManager);
+                    doSubpixel, doMedian, clearTable, addToRoiManager);
         } else {
             IJ.log("Issue with provided parameters. Not running plugin.");
         }

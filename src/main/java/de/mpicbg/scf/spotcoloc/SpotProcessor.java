@@ -648,11 +648,11 @@ public class SpotProcessor {
      *      channel A and B. Basically: spotsAvg_coloc[idx] = mean(spotsA_coloc[idx]+spotsB_coloc[idx])
      */
     public static class ColocResult {
-        final List<Spot> spotsA_noncoloc;
-        final List<Spot> spotsB_noncoloc;
-        final List<Spot> spotsA_coloc;
-        final List<Spot> spotsB_coloc;
-        final List<Spot> spotsAvg_coloc;
+        final public List<Spot> spotsA_noncoloc;
+        final public List<Spot> spotsB_noncoloc;
+        final public List<Spot> spotsA_coloc;
+        final public List<Spot> spotsB_coloc;
+        final public List<Spot> spotsAvg_coloc;
 
         ColocResult(List<Spot> spotsA_noncoloc, List<Spot> spotsB_noncoloc, List<Spot> spotsA_coloc,
                     List<Spot> spotsB_coloc, List<Spot> spotsAvg_coloc) {

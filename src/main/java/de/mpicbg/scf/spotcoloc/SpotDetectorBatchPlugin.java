@@ -46,9 +46,7 @@ public class SpotDetectorBatchPlugin implements Command {
 
 
     // -- private fields --
-    final private boolean doSubixel = true;
-
-    Roi currentRoi;
+    final private boolean doSubpixel = true;
 
     // spot analyzer
     private SpotProcessor spotProcessor;
@@ -57,12 +55,11 @@ public class SpotDetectorBatchPlugin implements Command {
     @Override
     public void run() {
         spotProcessor = new SpotProcessor(imp);
-        currentRoi = imp.getRoi();
         imp.setOverlay(null);
 
         // do spot detection . displays results table
         if (checkParameters()) {
-            spotProcessor.runFullSpotDetection(channel, radius_um, threshold, doSubixel,
+            spotProcessor.runFullSpotDetection(channel, radius_um, threshold, doSubpixel,
                     doMedian, clearTable, addToRoiManager);
         } else {
             IJ.log("Issue with provided parameters. Not running plugin.");

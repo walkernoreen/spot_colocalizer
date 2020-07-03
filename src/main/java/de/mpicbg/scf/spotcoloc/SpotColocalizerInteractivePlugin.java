@@ -93,9 +93,7 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
     private Button analysisButton;
 
     // -- private fields --
-    final private boolean doSubixel=true;
-
-    Roi currentRoi;
+    final private boolean doSubpixel=true;
 
     // spot analyzer
     private SpotProcessor spotProcessor;
@@ -130,7 +128,6 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
      * Generates spots preview. Triggered by "preview" button.
      */
     private void generatePreview_callback() {
-        currentRoi=imp.getRoi();
         imp.setOverlay(null);
 
         printParameters();
@@ -138,7 +135,7 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
         // show spot detection previews
         if (checkParameters()) {
             spotProcessor.generateDetectionPreviewMultiChannel(previewA, previewB, channelA, radiusA_um,
-                    thresholdA, channelB, radiusB_um, thresholdB, doSubixel, doMedian);
+                    thresholdA, channelB, radiusB_um, thresholdB, doSubpixel, doMedian);
         } else {
             IJ.log("Issue with parameters.");
         }
@@ -149,7 +146,7 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
                 public void run() {
                     System.out.println("params ok. generating preview");
                     spotProcessor.generateDetectionPreviewMultiChannel(previewA, previewB, channelA, radiusA_um,
-                            thresholdA, channelB, radiusB_um, thresholdB, doSubixel, doMedian);
+                            thresholdA, channelB, radiusB_um, thresholdB, doSubpixel, doMedian);
                 }
             }).start();
             */
@@ -161,7 +158,6 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
      * Triggered by "full analysis" button.
      */
     private void fullAnalysis_callback() {
-        currentRoi=imp.getRoi();
         imp.setOverlay(null);
 
         printParametersToLog();
@@ -170,7 +166,7 @@ public class SpotColocalizerInteractivePlugin extends InteractiveCommand   {
         if (checkParameters()) {
             spotProcessor.runFullColocalizationAnalysis(channelA, radiusA_um, thresholdA,
                     channelB, radiusB_um, thresholdB, distanceFactorColoc,
-                    doSubixel, doMedian, clearTable, addToRoiManager);
+                    doSubpixel, doMedian, clearTable, addToRoiManager);
         } else {
             IJ.log("Issue with provided parameters. Not running plugin.");
         }

@@ -64,9 +64,7 @@ public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
     private Button analysisButton;
 
     // -- private fields --
-    final private boolean doSubixel=true;
-
-    Roi currentRoi;
+    final private boolean doSubpixel=true;
 
     // spot analyzer
     private SpotProcessor spotProcessor;
@@ -95,14 +93,13 @@ public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
      * Generates spots preview. Triggered by "preview" button.
      */
     private void generatePreview_callback() {
-        currentRoi=imp.getRoi();
         imp.setOverlay(null);
 
         printParameters();
 
         // show spot detection previews
         if (checkParameters()) {
-            spotProcessor.generateDetectionPreviewSingleChannel(channel, radius_um, threshold, doSubixel, doMedian);
+            spotProcessor.generateDetectionPreviewSingleChannel(channel, radius_um, threshold, doSubpixel, doMedian);
         } else {
             IJ.log("Issue with parameters.");
         }
@@ -115,14 +112,13 @@ public class SpotDetectorInteractivePlugin extends InteractiveCommand   {
      * Triggered by "full analysis" button.
      */
     private void fullAnalysis_callback() {
-        currentRoi=imp.getRoi();
         imp.setOverlay(null);
 
         printParametersToLog();
 
         // do spot detection . displays results table
         if (checkParameters()) {
-            spotProcessor.runFullSpotDetection(channel, radius_um, threshold, doSubixel,
+            spotProcessor.runFullSpotDetection(channel, radius_um, threshold, doSubpixel,
                     doMedian, clearTable, addToRoiManager);
         } else {
             IJ.log("Issue with provided parameters. Not running plugin.");
