@@ -43,7 +43,7 @@
 * No colocalization is computed yet.
 * The preview is useful to optimize parameters.
 
-![](pics_for_docs/sci_preview.png)
+![](pics_for_docs/sci_preview2.png)
 
 
 #### Output:
@@ -52,7 +52,7 @@
 	* channel A not-colocalized: magenta, channel B not-colocalized: green, colocalized spots: white
 	* A colocalized spot is drawn at the mean position and with mean radius of the colocalized spot-pair.
 
-![](pics_for_docs/sci_image_result.png)
+![](pics_for_docs/sci_image_result2.png)
 
 * `Detailed Results Spot Colocalization table`: Each detected spot is listed in this table. The computed features are taken from the TrackMate detector. For details see [TODO]. The last column states whether the spot was colocalized.
 	* Important:
