@@ -1,75 +1,80 @@
-* This is a collection of plugins for detecting spots and doing colocalization analysis between spots in 3D and 2D. Spots are detected with a Laplacian of Gaussian filter (by Trackmate plugin TODO link). For computing colocalization we measure the distance between spot centers: Spots are considered colocalized if their centers are less than a user-defined distance (for example the spot radius) apart. 
+# Spot Colocalizer (3D)
+These are plugins to quantify the colocalization of spots in 2D and 3D. 
 
-* A typical use case would be colocalization analysis of small roundish objects.
-* For details on the implementation please see section "Algorithm details" below.
+**Detection of spots is done with a Laplacian of Gaussian filter** ([from Trackmate](https://imagej.net/TrackMate)). **Colocalization is based on the distance between spot centers:** Spots are considered colocalized if their centers are less than a user-defined distance (for example the spot radius) apart. For more details see section "Algorithm details" below. A typical use case would be colocalization analysis of small roundish objects.
 
-* The plugins come in a couple of flavors:
-	* `SpotColocalization Interactive`: Does spot detection in 2 selected channels and analyzes colocalization between the spots.
-	* `SpotColocalization`: macro-recordable version of `Spot Colocalization Interactive`.
-	* `SpotDetection Interactive` Does spot detection in 1 selected channel. This is basically the first part of the colocalization plugin.
-	* `SpotDetection`: macro-recordable version of `Spot Detection Interactive`.
+The colocalization plugins come in two flavors: `SpotColocalizer Interactive` allows for interactive exploration of parameters. Its friend `SpotColocalizer` does the same but has a simpler GUI and is therefore macro-recordable.
+For convenience, there are additionally two plugins available which only do the detection step: `SpotDetector Interactive` and `SpotDetector`.
 
+All plugins can be found under the menu entry *Plugins > Spot Colocalization*.
 
+The input image can be 2D or 3D and must be a single timepoint.
 
-
-#### Suitable input data
-* The plugins can handle:
-* 2D or 3D, single channel (only for detection) or multichannel composite (for detection and colocalization), single timepoint. TODO nicer
+## Installation
+* Activate the *SCF-MPI-CBG* update site.
+* See [here](https://imagej.net/How_to_follow_a_3rd_party_update_site) for general instructions on how to follow an update site.
 
 
-## Spot Colocalization
-### `SpotColocalizer Interactive`: Interactive exploration
+## Spot Colocalization plugins
+### SpotColocalizer Interactive plugin
+<img src="pics_for_docs/sci_gui_inputdata_combined.png" align="right" width="500"/>
+<!-- markdown way of inserting pics: ![](pics_for_docs/sci_gui_inputdata_combined.png)-->
+This plugin does spot detection and colocalization analysis for two selected channels in the current image. It allows for **interactive exploration** of parameters. If a ROI is drawn, then the analysis is restricted to this region.
+
 * Menu path: `Plugins > Spot Colocalization > SpotColocalizer Interactive`
-* This plugin does spot detection and colocalization analysis for 2 selected channels in the current image. It allows for interactive exploration of parameters.
-* If a ROI is drawn, then analysis is restricted to this region.
-![](pics_for_docs/sci_gui_inputdata_combined.png)
-* TODO somehwere: image courtesy: Andre Greiner, MPI-CBG
 
-#### Parameters
+
+
+#### GUI Parameters:
 * `channel number` (for channel A/B): which channel to use for spot detection (one-based)
-* `radius (um)` (for channel A/B): approximate radius of spots in um (see also TODO link to: Trackmate parameters).
-* `quality threshold` (for channel A/B): filter out spots which are below this quality. Quality is roughly determined by spot brightness and how close its size is to the input radius. This parameter is the Trackmate quality measure (TODO link) but scaled with spot size to make it somewhat less dependent on variations in input radius.
+* `radius (um)` (for channel A/B): approximate radius of spots in um.
+* `quality threshold` (for channel A/B): filter out spots which are below this quality. Quality is a measure for spot brightness and how similar the spot size is to the user-provided radius. This parameter is the Trackmate [quality measure](https://imagej.net/TrackMate_FAQ.html#Signification_of_the_Quality_value_in_LoG_Detector.) but scaled with spot size to make it somewhat less dependent on variations in input radius.
 * `median filtering` : smooth the image with median filter before detecting spots
 * `coloc distance factor`: Two spots A and B are considered colocalized if their centers are less than `coloc_distance_factor*0.5*(radiusA+radiusB)` apart. If this value is `1` then spots are colocalized if the distance between their centers is smaller than their mean radius.
 * `clear results tables`: clear the table before adding the new results, otherwise results will be appended.
 * `add spots to Roi Manager`: adds spots to the Roi Manager als multipoint Rois.
 * `Include spots A/B in preview`: When generating a preview (see below), detect and show spots in channel A/B.
 
+</br>
+
+
+<img src="pics_for_docs/sci_preview2.png" align="right" width="200"/>
+
 #### Preview: 
-* Use the `Generate preview` button, and select beforehand either one or both of the preview checkboxes above.
-* Spots are detected and displayed as overlay. (TODO: where to put the lines below)
-	* Detection is in 3D and spots are displayed as 3 dimensional overlays (i.e. in multiple slices if they are big enough).
-	* Spots of channel A resp. B are displayed in magenta, resp. green.
-* No colocalization is computed yet.
-* The preview is useful to optimize parameters.
 
-![](pics_for_docs/sci_preview2.png)
+Check one or two of the preview checkboxes, then click the  `Generate preview` button. 
 
+Spots are detected in the selected channels and displayed as 3D overlay (i.e. they span multiple slices if the radius is sufficiently large). No colocalization is computed yet. 
 
-#### Output:
-* Use the `Full Colocalization Analysis` button to run detection and colocalization analysis. Computed outputs are:
-* `Overlay on Image`: detected spots are displayed as (3D) overlay in different colors.
-	* channel A not-colocalized: magenta, channel B not-colocalized: green, colocalized spots: white
+The preview is useful to optimize detection parameters.
+
+</br>
+
+#### Outputs:
+<img src="pics_for_docs/sci_image_result2.png" align="right" width="200"/>
+
+Use the `Full Colocalization Analysis` button to run detection and colocalization analysis. Computed outputs are:
+
+* **`Overlay on Image`**: detected spots are displayed as (3D) overlay in different colors.
+	* *magenta*: channel A not-colocalized, *green*: channel B not-colocalized, *white*: colocalized spots
 	* A colocalized spot is drawn at the mean position and with mean radius of the colocalized spot-pair.
-
-![](pics_for_docs/sci_image_result2.png)
-
-* `Detailed Results Spot Colocalization table`: Each detected spot is listed in this table. The computed features are taken from the TrackMate detector. For details see [TODO]. The last column states whether the spot was colocalized.
-	* Important:
-		* The colocalized spots are sorted: The 1st, 2nd,.. spot in the list in channel A which is classified colocalized corresponds to the 1st, 2nd,.. spot of channel B that is classified colocazized.
-		* z(pixel) is zero-based. Add +1 to compute slice number.
-		* mean_intensity is computed within the provided input radius which may or may not be suitable for your data.
+* **`Detailed Results Spot Colocalization table`**: Every row corresponds to a detected spot in either of the channels. Features like radius and intensity are obtained from the Trackmate detector. The last column tells whether the spot was colocalized.
+	* *z(pixel)* is zero-based. Add +1 to compute slice number.
+	* *mean_intensity* is computed within the provided input radius. This may or may not be a good measure for your data.
+	* The colocalized spots are sorted: The 1st, 2nd,.. spot in the list from channel A which is classified as colocalized corresponds to the 1st, 2nd,.. spot of channel B that is classified as colocalized.
 
 ![](pics_for_docs/sci_detailedtable.png)
 
-* `Summary Counts Spot Colocalization table`: Provides summary statistics of how many spots were detected in each channel and how many were colocalized.
+* **`Summary Counts Spot Colocalization table`**: Provides summary statistics of how many spots were detected in each channel and how many were colocalized.
+
 ![](pics_for_docs/sci_summarytable.png)
 
-* `MultiPoint Rois in Roi Manager`: Four multipoint Roi's are created: Points are separated by channel, and by whether they were colocalized.
-	* The point rois are associated to a specific channel, and each point to a specific slice.
-	* An easy way to recover statistics similar to the detailed results table would be the `Measure` button in the Roi Manager. (TODO remove this?)
 
-![](pics_for_docs/sci_roimanager.png)
+<img src="pics_for_docs/sci_roimanager.png" align="right" width="150"/>
+
+* **`MultiPoint Rois in Roi Manager`**: Four multipoint Roi's are created: Points are separated by channel, and by whether they were colocalized.
+	* The point rois are associated to a specific channel, and each point to a specific slice.
+
 
 
 #### Tips:
@@ -77,72 +82,78 @@
 * To change the active image: close the plugin, select the new image, open the plugin again.
 * If detection is slow optimize the parameters first on a small Roi region.
 
+</br>
 
-### `SpotColocalizer`: Macro-recordable version
+### SpotColocalizer plugin
+<img src="pics_for_docs/scb_gui.png" align="right" width="250"/>
+
+This plugin does exactly the same analysis as `SpotColocalizer Interactive` but has a simpler GUI and is therefore **macro-recordable**. It does not have preview functionality.
+
 * Menu path: `Plugins > Spot Colocalization > Macro Recordable > SpotColocalizer`
-* This plugin does exactly the same analysis as `SpotColocalizer Interactive` but has a simpler GUI and is therefore macro-recordable.
-* It does not have preview functionality.
-![](pics_for_docs/scb_gui.png)
 
+</br></br>
 
-## Spot Detection
-### `SpotDetector Interactive`: Interactive exploration
+## Spot Detection plugins
+### SpotDetector Interactive plugin
+<img src="pics_for_docs/sdi_gui.png" align="right" width="250"/>
+
+This plugin does spot detection in one selected channel of the current image. It allows for **interactive exploration** of parameters. The used detection process is identical to the first step of the colocalization plugins. If a ROI is drawn, then analysis is restricted to this region.
+
+**Note**: *This plugin is a thin wrapper around the TrackMate spot detector and identical results could be obtained with the TrackMate GUI*. It exists mostly for convenience when tracking is not needed.
+
 * Menu path: `Plugins > Spot Colocalization >  SpotDetector Interactive`
-* This plugin does spot detection in 1 selected channel in the current image. It allows for interactive exploration of parameters. The used detection process is identical to the first step of the colocalization plugins.
-* Note: *This plugin is a thin wrapper around the TrackMate spot detector and identical results could be obtained with the TrackMate GUI*. It exists mostly for convenience when tracking is not needed.
-* If a ROI is drawn, then analysis is restricted to this region.
-
-![](pics_for_docs/sdi_gui.png)
 
 
-#### Parameters
-* for description, see respective parameters in `SpotColocalizer Interactive`.
+#### GUI Parameters:
+For description, see corresponding parameters in `SpotColocalizer Interactive`.
 
 #### Preview: 
-* Use the `Generate preview` button. Detected spots are displayed as (3D) overlay.
+Press the `Generate preview` button. Detected spots are displayed as (3D) overlay.
 
-#### Output:
-* Use the `Full Spot Detection` button to run detection. Computed outputs are:
+#### Outputs:
+<img src="pics_for_docs/sdi_image_result.png" align="right" width="200"/>
+
+Use the `Full Spot Detection` button to run detection. Computed outputs are:
+
 * `Overlay on Image`: detected spots are displayed as (3D) overlay in magenta.
-
-![](pics_for_docs/sdi_image_result.png)
-
-* `Results Spots Detection table`: Each detected spot is listed in this table. The computed features are taken from the TrackMate detector. For details see [TODO]. 
-	* Important:
-		* z(pixel) is zero-based. Add +1 to compute slice number.
-		* mean_intensity is computed within the provided input radius which may or may not be suitable for your data.
+* `Results Spots Detection table`: Each row corresponds to a detected spot. Features like radius and intensity are obtained from the Trackmate detector.
+	* *z(pixel)* is zero-based. Add +1 to compute slice number.
+	* *mean_intensity* is computed within the provided input radius. This may or may not be a good measure for your data.
 
 ![](pics_for_docs/sdi_spotresults.png)
 
 
 * `MultiPoint Roi in Roi Manager`: One multipoint Roi with all detected spots is created.
 	* The point rois are associated to a specific channel, and each point to a specific slice.
-	* An easy way to recover statistics similar to the detailed results table would be the `Measure` button. (TODO remove this?)
 
-### `SpotDetector`: Macro-recordable version
+</br>
+
+## SpotDetector plugin
+<img src="pics_for_docs/sdb_gui.png" align="right" width="250"/>
+This plugin does exactly the same analysis as `SpotDetector Interactive` but has a simpler GUI and is therefore **macro-recordable**. It does not have preview functionality.
+
 * Menu path: `Plugins > Spot Colocalization > Macro Recordable > SpotDetector`
-* This plugin does exactly the same analysis as `SpotDetector Interactive` but has a simpler GUI and is therefore macro-recordable.
-* It does not have preview functionality.
-![](pics_for_docs/sdb_gui.png)
 
 
+</br>
+</br>
 
-## Algorithm details: How detection and colocalization is computed
+
+## Algorithm details
 #### Spot detection
-* For spot detection we fully rely on the TrackMate plugin.
-* refer to Trackmate (+adjusted threshold) TODO here
+* For spot detection we fully rely on the [TrackMate LoG Detector](https://imagej.net/TrackMate): The image is convolved with a Laplacian of Gaussian (LoG) filter and spots are detected as maxima within the convolved image. Each spot has a quality assigned (based on spot size and brightness) which can be used for filtering.
 
 #### Spot colocalization
-* 	* mention the greedy algorithm to avoid double assignments
-* TODO here
-
+* Input for colocalization quantification are two lists of spots, one each from channel A and B.
+* For each spot in channel A the closest spot from channel B is searched. If the spot pair is closer than the accepted threshold distance the spots are marked as colocalized, otherwise not.
+* Theoretically, it would be possible that a spot from channel B is the best and accepted match to two channel A spots (although this requires a very high spot density). To avoid such double assignments a greedy algorithm is used: The first found spot-pair is accepted, then the spots from this pair are removed from the list of potential matches.
+	* Note: While not globally optimal, the limitations of this approach should be irrelevant for biological spot densities.
 
 
 
 ## Macro recording & scripting
 #### Macros
-* The non-interactive plugin versions `SpotColocalizer` and `SpotDetector` can be macro-recorded.
-* Example output of recording:
+The non-interactive plugin versions `SpotColocalizer` and `SpotDetector` can be macro-recorded. Example output of recording:
 ````
 // Spot Detection
 run("SpotDetector", "channel=1 radius_um=0.9 threshold=5000.0 domedian=false cleartable=false addtoroimanager=true");
@@ -152,8 +163,7 @@ run("SpotDetector", "channel=1 radius_um=0.9 threshold=5000.0 domedian=false cle
 run("SpotColocalizer", "channela=1 radiusa_um=0.9 thresholda=5000.0 channelb=2 radiusb_um=0.9 thresholdb=4000.0 domedian=false distancefactorcoloc=1.0 cleartable=false addtoroimanager=true");
 ````
 #### Scripting (jython etc.)
-* The plugins can be recorded just like for the macro language.
-* Alternatively, it is also possible to access the functions directly via the `SpotProcessor` class:
+The plugins can be recorded just like for the macro language. Alternatively, it is also possible to access the functions directly via the *`SpotProcessor`* class:
 ```python
 # Examples of running some substeps of the spot-colocalizer via lower level access
 # see also https://github.com/walkernoreen/spot_colocalizer/blob/master/src/main/java/de/mpicbg/scf/spotcoloc/SpotProcessor.java
@@ -202,17 +212,20 @@ for spot in CR.spotsA_coloc:
 ```
 
 
-## Further resources, other plugins
-#### Some background and further resources [TODO other name?]
-* Colocalization analysis can be tricky and people often mean different things when talking about colocalization. [ToDo better]
-* On the simplest level we can distinguish between intensity based analysis (Pearson, Manders,...), and object based analysis (spot detection with spot distance analysis , object segmentation with volume overlap analysis, ...). The plugin of this page here is suitable for object based analysis for small roundish objects.
-* Before choosing a method make sure you know what type of analysis you need and that your images are acquired appropriately (e.g. no bleed-through, no chromatic aberration (or corrected for), ...).
-* For an excellent introduction on colocalization and a helpful flow-chart for choosing a good analysis method see for example : [BioImage Data Analysis Workflow, 2020 (chapter 3)](https://www.springer.com/gp/book/9783030223854)
-* There's also the Colocalization wiki page [TODO link]
+## Additional information
+### Colocalization analysis
+* "Colocalization analysis" can mean various methods of analyzing the spatial co-occurence of two signals. Before doing the analysis it is important to select the right method that fits your data. There are two main categories:
+	1. **Intensity based correlation analysis**. These methods quantify colocalization as correlation of pixel intensities with Pearson correlation coefficient, Manders, Costes etc. ([see here for introduction](https://imagej.net/Colocalization_Analysis)).
+	2. **Object based colocalization**. Here, objects are first detected/segmented and then the overlap of objects from the two different channels is quantified. Spot colocalization (this plugin here), where spot centers are detected and colocalization is quantified as distance between spot centers, is a special case of object-based analysis. It is suitable for small roundish objects. 
+* For an excellent introduction on colocalization and a helpful flow-chart for choosing a good analysis method see for example [BioImage Data Analysis Workflow, 2020 (chapter 3)](https://www.springer.com/gp/book/9783030223854)
+* Even before analysis, it is important to acquire images suitable for colocalization quantification, that is, without bleedthrough between channels, without chromatic shift (or it must be corrected for), etc. etc. ([some acquisition tips here](https://imagej.net/Colocalization_-_hardware_setup_and_image_acquisition)).
 
-#### Other plugins
-* ComDet[link] : spot colocalization in 2D, can handle also variable spot size
-* MorpholibJ: XXXoverlap measure: can be used to compute colocalization (as overlap measure) of segmented objects
-* Coloc2: intensity based colocalization analysis
-* and probably many more plugins ...
+### Other plugins
+An incomplete list of other plugins for spot-based colocalization analysis:
+* [ComDet](https://imagej.net/Spots_colocalization_(ComDet)) : spot colocalization in 2D, can also handle variable spot size.
+* [Distance Analysis (DiAna)](https://imagejdocu.tudor.lu/doku.php?id=plugin%3Aanalysis%3Adistance_analysis_diana_2d_3d_%3Astart) Colocalization and Distance analysis in 3D.
+* [MorpholibJ Label Overlap Measures](https://imagej.net/MorphoLibJ.html#Label_Overlap_Measures): General purpose quantification of overlaps for segmented objects.
 
+</br>
+
+**Image source:** The used example image on this page was kindly provided Andre Greiner, MPI-CBG.
