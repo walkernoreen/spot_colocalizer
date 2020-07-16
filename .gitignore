@@ -1,9 +1,5 @@
 target
-explore
+not_in_git
 .DS_Store
 *iml
 .idea
-src/main/resources/*tif
-raw_images_for_docs_gitignore
-duplicate_issue
-test_update_detector

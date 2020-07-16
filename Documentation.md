@@ -231,4 +231,4 @@ An incomplete list of other plugins for spot-based colocalization analysis:
 
 </br>
 
-**Image source:** The used example image on this page was kindly provided Andre Greiner, MPI-CBG.
+**Image source:** The used example image on this page was kindly provided by Andre Greiner, MPI-CBG.

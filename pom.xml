@@ -8,17 +8,17 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>24.2.0</version>
+		<version>26.0.0</version>
 		<relativePath />
 	</parent>
 
 	<groupId>de.mpicbg.scf</groupId>
 	<artifactId>SpotColocalizer</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.0</version> <!--0.1.0-SNAPSHOT-->
 
 	<name>SpotColocalizer</name>
 	<description>Detects spots in 2 channel and measures spot colocalization based on spot center distances (2D and 3D).</description>
-	<url>TODO</url>
+	<url>https://github.com/walkernoreen/spot_colocalizer</url>
 	<inceptionYear>2020</inceptionYear>
 	<organization>
 		<name>MPI CBG</name>
@@ -36,7 +36,7 @@
 		<developer>
 			<id>walkernoreen</id>
 			<name>Noreen Walker</name>
-			<url>none</url> <!--not yet ...-->
+			<url>none</url>
 			<roles>
 				<role>developer</role>
 				<role>debugger</role>
@@ -64,7 +64,7 @@
 	</scm>
 	<issueManagement>
 		<system>GitHub Issues</system>
-		<url>TODO</url>
+		<url></url>
 	</issueManagement>
 	<ciManagement>
 		<system>none</system>

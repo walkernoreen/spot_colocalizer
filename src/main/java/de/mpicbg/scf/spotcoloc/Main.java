@@ -20,39 +20,27 @@ public class Main {
    //public static  void main(final String... args) throws Exception {
         // create the ImageJ application context with all available services
 
-        // plugins dir for development: make IJ.run() work
-        //String pluginsDir = "/Applications/Fiji/plugins";
-        //System.setProperty("plugins.dir", pluginsDir);
-
 
         final ImageJ ij = new ImageJ();
         ij.ui().showUI();
 
         // load and show image
 
-        //File inputFile=new File("duplicate_issue/stack_multichannel_duplicate_spot.tif");
-        File inputFile=new File("src/main/resources/spots_multichannel_stack.tif");
+        File inputFile=new File("src/main/resources/NIP3_GFP_PGL3_mCherry_40x-Sil_Neo_crop.tif");
 
       ImagePlus imp= IJ.openImage(inputFile.getPath());
 
-       int[] xpoints = {65,185,175};
-       int[] ypoints = {124,22,202};
+       int[] xpoints = {32,69,121,43};
+       int[] ypoints = {134,184,116,45};
        imp.setRoi(new PolygonRoi(xpoints,ypoints,3,Roi.POLYGON));
        int nSlices = imp.getNSlices();
-       imp.setPosition(1, (int) Math.max(1,0.5*nSlices),1);
+       imp.setPosition(1, (int) Math.max(1,0.2*nSlices),1);
        imp.show();
 
        // invoke the plugin (IJ2 style)
         ij.command().run(SpotColocalizerInteractivePlugin.class, true);
 
-        // automatize input for all @Parameters
-      /*  Map<String, Object> map = new HashMap<>();
-          map.put("segImp", labels);
-          map.put("grayImp", imp);
-
-        ij.command().run(Create3DOverlayPlugin.class, true, map);*/
-
-       System.out.println("Done");
+       //System.out.println("Done");
     }
 
 
