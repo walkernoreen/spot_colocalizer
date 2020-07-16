@@ -1,7 +1,7 @@
 # Spot Colocalizer (3D)
 These are plugins to quantify the colocalization of spots in 2D and 3D. 
 
-**Detection of spots is done with a Laplacian of Gaussian filter** ([from Trackmate](https://imagej.net/TrackMate)). **Colocalization is based on the distance between spot centers:** Spots are considered colocalized if their centers are less than a user-defined distance (for example the spot radius) apart. For more details see section "Algorithm details" below. A typical use case would be colocalization analysis of small roundish objects.
+**Detection of spots is done with a Laplacian of Gaussian filter** ([from Trackmate](https://imagej.net/TrackMate)). **Colocalization is based on the distance between spot centers: Spots are considered colocalized if their centers are less than a user-defined distance (for example the spot radius) apart.** For more details see section "Algorithm details" below. A typical use case would be colocalization analysis of small roundish objects.
 
 The colocalization plugins come in two flavors: `SpotColocalizer Interactive` allows for interactive exploration of parameters. Its friend `SpotColocalizer` does the same but has a simpler GUI and is therefore macro-recordable.
 For convenience, there are additionally two plugins available which only do the detection step: `SpotDetector Interactive` and `SpotDetector`.
@@ -11,7 +11,7 @@ All plugins can be found under the menu entry *Plugins > Spot Colocalization*.
 The input image can be 2D or 3D and must be a single timepoint.
 
 ## Installation
-* Activate the *SCF-MPI-CBG* update site.
+* In Fiji, the plugins are distributed via an update site: Activate the *SCF-MPI-CBG* update site.
 * See [here](https://imagej.net/How_to_follow_a_3rd_party_update_site) for general instructions on how to follow an update site.
 
 
@@ -19,6 +19,7 @@ The input image can be 2D or 3D and must be a single timepoint.
 ### SpotColocalizer Interactive plugin
 <img src="pics_for_docs/sci_gui_inputdata_combined.png" align="right" width="500"/>
 <!-- markdown way of inserting pics: ![](pics_for_docs/sci_gui_inputdata_combined.png)-->
+
 This plugin does spot detection and colocalization analysis for two selected channels in the current image. It allows for **interactive exploration** of parameters. If a ROI is drawn, then the analysis is restricted to this region.
 
 * Menu path: `Plugins > Spot Colocalization > SpotColocalizer Interactive`
@@ -29,8 +30,8 @@ This plugin does spot detection and colocalization analysis for two selected cha
 * `channel number` (for channel A/B): which channel to use for spot detection (one-based)
 * `radius (um)` (for channel A/B): approximate radius of spots in um.
 * `quality threshold` (for channel A/B): filter out spots which are below this quality. Quality is a measure for spot brightness and how similar the spot size is to the user-provided radius. This parameter is the Trackmate [quality measure](https://imagej.net/TrackMate_FAQ.html#Signification_of_the_Quality_value_in_LoG_Detector.) but scaled with spot size to make it somewhat less dependent on variations in input radius.
-* `median filtering` : smooth the image with median filter before detecting spots
-* `coloc distance factor`: Two spots A and B are considered colocalized if their centers are less than `coloc_distance_factor*0.5*(radiusA+radiusB)` apart. If this value is `1` then spots are colocalized if the distance between their centers is smaller than their mean radius.
+* `median filtering` : smooth the image with median filter before detecting spots.
+* `coloc distance factor`: Two spots A and B are considered colocalized if their centers are less than `coloc_distance_factor*1/2*(radiusA+radiusB)` apart. If this value is `1` then spots are consdiered colocalized if the distance between their centers is smaller than their mean radius.
 * `clear results tables`: clear the table before adding the new results, otherwise results will be appended.
 * `add spots to Roi Manager`: adds spots to the Roi Manager als multipoint Rois.
 * `Include spots A/B in preview`: When generating a preview (see below), detect and show spots in channel A/B.
@@ -51,9 +52,10 @@ The preview is useful to optimize detection parameters.
 </br>
 
 #### Outputs:
-<img src="pics_for_docs/sci_image_result2.png" align="right" width="200"/>
 
 Use the `Full Colocalization Analysis` button to run detection and colocalization analysis. Computed outputs are:
+
+<img src="pics_for_docs/sci_image_result2.png" align="right" width="200"/>
 
 * **`Overlay on Image`**: detected spots are displayed as (3D) overlay in different colors.
 	* *magenta*: channel A not-colocalized, *green*: channel B not-colocalized, *white*: colocalized spots
@@ -77,7 +79,7 @@ Use the `Full Colocalization Analysis` button to run detection and colocalizatio
 
 
 
-#### Tips:
+### Tips:
 * After finishing, close the plugin GUI manually.
 * To change the active image: close the plugin, select the new image, open the plugin again.
 * If detection is slow optimize the parameters first on a small Roi region.
@@ -128,8 +130,9 @@ Use the `Full Spot Detection` button to run detection. Computed outputs are:
 
 </br>
 
-## SpotDetector plugin
+### SpotDetector plugin
 <img src="pics_for_docs/sdb_gui.png" align="right" width="250"/>
+
 This plugin does exactly the same analysis as `SpotDetector Interactive` but has a simpler GUI and is therefore **macro-recordable**. It does not have preview functionality.
 
 * Menu path: `Plugins > Spot Colocalization > Macro Recordable > SpotDetector`
@@ -145,7 +148,7 @@ This plugin does exactly the same analysis as `SpotDetector Interactive` but has
 
 #### Spot colocalization
 * Input for colocalization quantification are two lists of spots, one each from channel A and B.
-* For each spot in channel A the closest spot from channel B is searched. If the spot pair is closer than the accepted threshold distance the spots are marked as colocalized, otherwise not.
+* For each spot from channel A the closest spot from channel B is searched. If this spot pair is closer than the accepted threshold distance the spots are marked as colocalized, otherwise not.
 * Theoretically, it would be possible that a spot from channel B is the best and accepted match to two channel A spots (although this requires a very high spot density). To avoid such double assignments a greedy algorithm is used: The first found spot-pair is accepted, then the spots from this pair are removed from the list of potential matches.
 	* Note: While not globally optimal, the limitations of this approach should be irrelevant for biological spot densities.
 
@@ -216,8 +219,8 @@ for spot in CR.spotsA_coloc:
 ### Colocalization analysis
 * "Colocalization analysis" can mean various methods of analyzing the spatial co-occurence of two signals. Before doing the analysis it is important to select the right method that fits your data. There are two main categories:
 	1. **Intensity based correlation analysis**. These methods quantify colocalization as correlation of pixel intensities with Pearson correlation coefficient, Manders, Costes etc. ([see here for introduction](https://imagej.net/Colocalization_Analysis)).
-	2. **Object based colocalization**. Here, objects are first detected/segmented and then the overlap of objects from the two different channels is quantified. Spot colocalization (this plugin here), where spot centers are detected and colocalization is quantified as distance between spot centers, is a special case of object-based analysis. It is suitable for small roundish objects. 
-* For an excellent introduction on colocalization and a helpful flow-chart for choosing a good analysis method see for example [BioImage Data Analysis Workflow, 2020 (chapter 3)](https://www.springer.com/gp/book/9783030223854)
+	2. **Object based colocalization**. Here, objects are first detected/segmented and then the overlap of objects from the two different channels is quantified. **Spot colocalization** (this plugin here), where spot centers are detected and colocalization is quantified as distance between spot centers, is a special case of object-based analysis. It is suitable for small roundish objects. 
+* For an excellent introduction on colocalization and a helpful flow-chart for choosing a good analysis method see for example [BioImage Data Analysis Workflow, 2020 (chapter 3)](https://www.springer.com/gp/book/9783030223854).
 * Even before analysis, it is important to acquire images suitable for colocalization quantification, that is, without bleedthrough between channels, without chromatic shift (or it must be corrected for), etc. etc. ([some acquisition tips here](https://imagej.net/Colocalization_-_hardware_setup_and_image_acquisition)).
 
 ### Other plugins
