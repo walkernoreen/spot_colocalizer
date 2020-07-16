@@ -10,13 +10,13 @@ All plugins can be found under the menu entry *Plugins > Spot Colocalization*.
 
 The input image can be 2D or 3D and must be a single timepoint.
 
-## Installation
+# Installation
 * In Fiji, the plugins are distributed via an update site: Activate the *SCF-MPI-CBG* update site.
 * See [here](https://imagej.net/How_to_follow_a_3rd_party_update_site) for general instructions on how to follow an update site.
 
 
-## Spot Colocalization plugins
-### SpotColocalizer Interactive plugin
+# Spot Colocalization plugins
+## SpotColocalizer Interactive plugin
 <img src="pics_for_docs/sci_gui_inputdata_combined.png" align="right" width="500"/>
 <!-- markdown way of inserting pics: ![](pics_for_docs/sci_gui_inputdata_combined.png)-->
 
@@ -79,14 +79,14 @@ Use the `Full Colocalization Analysis` button to run detection and colocalizatio
 
 
 
-### Tips:
+#### Tips:
 * After finishing, close the plugin GUI manually.
 * To change the active image: close the plugin, select the new image, open the plugin again.
 * If detection is slow optimize the parameters first on a small Roi region.
 
 </br>
 
-### SpotColocalizer plugin
+## SpotColocalizer plugin
 <img src="pics_for_docs/scb_gui.png" align="right" width="250"/>
 
 This plugin does exactly the same analysis as `SpotColocalizer Interactive` but has a simpler GUI and is therefore **macro-recordable**. It does not have preview functionality.
@@ -95,8 +95,8 @@ This plugin does exactly the same analysis as `SpotColocalizer Interactive` but 
 
 </br></br>
 
-## Spot Detection plugins
-### SpotDetector Interactive plugin
+# Spot Detection plugins
+## SpotDetector Interactive plugin
 <img src="pics_for_docs/sdi_gui.png" align="right" width="250"/>
 
 This plugin does spot detection in one selected channel of the current image. It allows for **interactive exploration** of parameters. The used detection process is identical to the first step of the colocalization plugins. If a ROI is drawn, then analysis is restricted to this region.
@@ -112,8 +112,10 @@ For description, see corresponding parameters in `SpotColocalizer Interactive`.
 #### Preview: 
 Press the `Generate preview` button. Detected spots are displayed as (3D) overlay.
 
-#### Outputs:
+
 <img src="pics_for_docs/sdi_image_result.png" align="right" width="200"/>
+
+#### Outputs:
 
 Use the `Full Spot Detection` button to run detection. Computed outputs are:
 
@@ -130,7 +132,7 @@ Use the `Full Spot Detection` button to run detection. Computed outputs are:
 
 </br>
 
-### SpotDetector plugin
+## SpotDetector plugin
 <img src="pics_for_docs/sdb_gui.png" align="right" width="250"/>
 
 This plugin does exactly the same analysis as `SpotDetector Interactive` but has a simpler GUI and is therefore **macro-recordable**. It does not have preview functionality.
@@ -142,11 +144,11 @@ This plugin does exactly the same analysis as `SpotDetector Interactive` but has
 </br>
 
 
-## Algorithm details
-#### Spot detection
+# Algorithm details
+### Spot detection
 * For spot detection we fully rely on the [TrackMate LoG Detector](https://imagej.net/TrackMate): The image is convolved with a Laplacian of Gaussian (LoG) filter and spots are detected as maxima within the convolved image. Each spot has a quality assigned (based on spot size and brightness) which can be used for filtering.
 
-#### Spot colocalization
+### Spot colocalization
 * Input for colocalization quantification are two lists of spots, one each from channel A and B.
 * For each spot from channel A the closest spot from channel B is searched. If this spot pair is closer than the accepted threshold distance the spots are marked as colocalized, otherwise not.
 * Theoretically, it would be possible that a spot from channel B is the best and accepted match to two channel A spots (although this requires a very high spot density). To avoid such double assignments a greedy algorithm is used: The first found spot-pair is accepted, then the spots from this pair are removed from the list of potential matches.
@@ -154,8 +156,8 @@ This plugin does exactly the same analysis as `SpotDetector Interactive` but has
 
 
 
-## Macro recording & scripting
-#### Macros
+# Macro recording & scripting
+### Macros
 The non-interactive plugin versions `SpotColocalizer` and `SpotDetector` can be macro-recorded. Example output of recording:
 ````
 // Spot Detection
@@ -165,7 +167,7 @@ run("SpotDetector", "channel=1 radius_um=0.9 threshold=5000.0 domedian=false cle
 // Spot Colocalization
 run("SpotColocalizer", "channela=1 radiusa_um=0.9 thresholda=5000.0 channelb=2 radiusb_um=0.9 thresholdb=4000.0 domedian=false distancefactorcoloc=1.0 cleartable=false addtoroimanager=true");
 ````
-#### Scripting (jython etc.)
+### Scripting (jython etc.)
 The plugins can be recorded just like for the macro language. Alternatively, it is also possible to access the functions directly via the *`SpotProcessor`* class:
 ```python
 # Examples of running some substeps of the spot-colocalizer via lower level access
@@ -215,7 +217,7 @@ for spot in CR.spotsA_coloc:
 ```
 
 
-## Additional information
+# Additional information
 ### Colocalization analysis
 * "Colocalization analysis" can mean various methods of analyzing the spatial co-occurence of two signals. Before doing the analysis it is important to select the right method that fits your data. There are two main categories:
 	1. **Intensity based correlation analysis**. These methods quantify colocalization as correlation of pixel intensities with Pearson correlation coefficient, Manders, Costes etc. ([see here for introduction](https://imagej.net/Colocalization_Analysis)).

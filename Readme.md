@@ -3,7 +3,7 @@
 ## About
 These are ImageJ plugins for quantifying the colocalization of spots in (multichannel) 2D or 3D images.
 
-**For plugin description and installation instructions, see [here](Documentation.md).**
+**For description of the plugins and installation instructions, see [here](Documentation.md).**
 
 
 ## Authors
